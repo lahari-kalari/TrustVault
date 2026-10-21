@@ -102,3 +102,20 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 
 Add an entry after each significant AI-assisted development or security-testing task. Record the actual request, generated suggestion or output, any incorrect assumption or limitation, the corrective action, and a link to the relevant commit. If no commit exists yet, record that explicitly and add the commit link after the change is committed. Never invent test results or commit identifiers.
 
+
+## Entry 6 — 2026-10-21: Audit-trail verification and repository cleanup
+
+- **What was requested:** Verify that denied administrator access is recorded in the audit trail, and stop tracking generated Python cache files and temporary test uploads.
+
+- **What the tool produced:** An automated test checking that a viewer receives HTTP 403 and that a `role_access_denied` audit event is recorded with the actor, denied outcome, and `/admin` details. The repository cleanup also updated `.gitignore` and removed tracked Python cache files from Git.
+
+- **What could be wrong:** A 403 response alone does not prove that the denial was recorded in the audit trail. Generated files can also reappear in Git if ignore rules are missing or the files remain tracked.
+
+- **What was done instead:** Extend the viewer authorization test to verify the audit event, run the complete pytest suite, add generated test uploads to `.gitignore`, and remove Python cache files from Git tracking without deleting the local cache files.
+
+- **Verification:** The audit-related test passed, all nine tests passed in the latest full run, the cleanup commit was pushed to GitHub, and `git status --short` returned no changes.
+
+- **Related audit-test commit:** https://github.com/lahari-kalari/TrustVault/commit/4e4c87e7c4f004788ba7e36472a2e0c056082902
+
+- **Related repository-cleanup commit:** https://github.com/lahari-kalari/TrustVault/commit/d2b2fa7
+
