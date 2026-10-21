@@ -10,22 +10,111 @@
     <h1>TrustVault Dashboard</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <p role="status">{{ message }}</p>
-      {% endfor %}
+        {% for category, message in messages %}
+            <p role="status">{{ message }}</p>
+        {% endfor %}
     {% endwith %}
 
     <p>Welcome, {{ current_user.name }}!</p>
     <p>Your role: <strong>{{ current_user.role }}</strong></p>
 
     {% if current_user.role == "admin" %}
-        <p><a href="{{ url_for('admin_page') }}">Open admin page</a></p>
+        <p><a href="{{ url_for('admin_page') }}">Admin page</a></p>
     {% endif %}
 
-    <p>Document management will be added in a later step.</p>
+    <h2>Upload a document</h2>
+    <p>Allowed types: PDF, PNG, JPG, JPEG, TXT, DOCX. Maximum 10 MB.</p>
+
+    <form method="POST"
+          action="{{ url_for('upload_document') }}"
+          enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token"
+               value="{{ csrf_token() }}">
+        <input type="file" name="file"
+               accept=".pdf,.png,.jpg,.jpeg,.txt,.docx" required>
+        <button type="submit">Upload document</button>
+    </form>
+
+    <h2>My documents</h2>
+
+    {% for document in documents %}
+        <section>
+            <h3>{{ document.title }}</h3>
+            <p>Category: {{ document.category }}</p>
+            <p>Size: {{ document.size_bytes }} bytes</p>
+
+            <a href="{{ url_for(
+                'download_document',
+                document_id=document.id
+            ) }}">Download</a>
+
+            <h4>Share document</h4>
+            <form method="POST" action="{{ url_for(
+                'share_document',
+                document_id=document.id
+            ) }}">
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <label>
+                    Recipient email:
+                    <input type="email" name="email"
+                           maxlength="255" required>
+                </label>
+
+                <label>
+                    Permission:
+                    <select name="permission_type">
+                        <option value="read">Read</option>
+                        <option value="edit">Edit</option>
+                    </select>
+                </label>
+
+                <button type="submit">Grant access</button>
+            </form>
+
+            <h4>Current permissions</h4>
+            {% for permission in document.permissions %}
+                <p>
+                    {{ permission.user.email }}
+                    — {{ permission.permission_type }}
+                </p>
+
+                <form method="POST" action="{{ url_for(
+                    'revoke_document_access',
+                    document_id=document.id,
+                    user_id=permission.user_id
+                ) }}">
+                    <input type="hidden" name="csrf_token"
+                           value="{{ csrf_token() }}">
+                    <button type="submit">Revoke access</button>
+                </form>
+            {% else %}
+                <p>No users have been granted access.</p>
+            {% endfor %}
+        </section>
+        <hr>
+    {% else %}
+        <p>You have not uploaded any documents yet.</p>
+    {% endfor %}
+
+    <h2>Shared with me</h2>
+    {% for document, permission_type in shared_documents %}
+        <p>
+            {{ document.title }}
+            — Permission: {{ permission_type }}
+            — <a href="{{ url_for(
+                'download_document',
+                document_id=document.id
+            ) }}">Download</a>
+        </p>
+    {% else %}
+        <p>No documents have been shared with you.</p>
+    {% endfor %}
 
     <form method="POST" action="{{ url_for('logout') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="csrf_token"
+            value="{{ csrf_token() }}">
         <button type="submit">Log out</button>
     </form>
 </body>
