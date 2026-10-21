@@ -8,3 +8,4 @@ instance/
 *.sqlite
 *.sqlite3
 .pytest_cache/
+test_private_uploads/
