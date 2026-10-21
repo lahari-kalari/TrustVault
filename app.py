@@ -1,6 +1,6 @@
-
 import os
 import uuid
+import zipfile
 from functools import wraps
 
 from flask import (
@@ -21,8 +21,9 @@ from flask_login import (
     logout_user,
 )
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
+from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import (
     check_password_hash,
     generate_password_hash,
@@ -33,42 +34,82 @@ from forms import LoginForm, RegistrationForm
 from models import db, User, Document, Permission, AuditLog
 
 
-# --------------------------------------------------
-# APPLICATION CONFIGURATION
-# --------------------------------------------------
+# ==================================================
+# 1. APPLICATION CONFIGURATION
+# ==================================================
 
 app = Flask(__name__, instance_relative_config=True)
 
 os.makedirs(app.instance_path, exist_ok=True)
 
-UPLOAD_FOLDER = os.path.join(app.instance_path, "private_uploads")
+UPLOAD_FOLDER = os.path.join(
+    app.instance_path,
+    "private_uploads",
+)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "txt", "docx"}
+ALLOWED_EXTENSIONS = {
+    "pdf", "png", "jpg", "jpeg", "txt", "docx"
+}
 
-app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "sqlite:///" + os.path.join(app.instance_path, "trustvault.db")
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 app.config["SECRET_KEY"] = os.environ.get(
-    "TRUSTVAULT_SECRET_KEY",
-    "dev-only-change-this-secret-key",
+    "TRUSTVAULT_SECRET_KEY"
 )
 
+if not app.config["SECRET_KEY"]:
+    if os.environ.get("FLASK_ENV") == "production":
+        raise RuntimeError(
+            "Set TRUSTVAULT_SECRET_KEY before starting in production."
+        )
+
+    # Development fallback only. Set a real secret for deployment.
+    app.config["SECRET_KEY"] = (
+        "dev-only-change-this-secret-key"
+    )
+
 csrf = CSRFProtect(app)
+
 db.init_app(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
-login_manager.login_message = "Please log in to access this page."
+login_manager.login_message = (
+    "Please log in to access this page."
+)
 login_manager.session_protection = "strong"
 
 
-# --------------------------------------------------
-# LOGIN AND ROLE MANAGEMENT
-# --------------------------------------------------
+# ==================================================
+# 2. ERROR HANDLING
+# ==================================================
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(error):
+    flash(
+        "The request exceeds the 10 MB upload limit.",
+        "error",
+    )
+
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    return redirect(url_for("login"))
+
+
+# ==================================================
+# 3. LOGIN AND ROLE MANAGEMENT
+# ==================================================
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -79,7 +120,10 @@ def load_user(user_id):
 
 
 def roles_required(*allowed_roles):
+    """Allow access only to users with specified roles."""
+
     def decorator(view_function):
+
         @wraps(view_function)
         @login_required
         def wrapped_view(*args, **kwargs):
@@ -98,39 +142,124 @@ def roles_required(*allowed_roles):
     return decorator
 
 
-# --------------------------------------------------
-# AUDIT LOGGING
-# --------------------------------------------------
+# ==================================================
+# 4. AUDIT LOGGING
+# ==================================================
 
-def record_audit(action, outcome, document_id=None, details=None):
-    db.session.add(
-        AuditLog(
-            actor_id=(
-                current_user.id
-                if current_user.is_authenticated
-                else None
-            ),
+def record_audit(
+    action,
+    outcome,
+    document_id=None,
+    details=None,
+):
+    """
+    Save an audit event.
+
+    This helper commits its own transaction. For operations
+    that must be atomic with their audit entry, add AuditLog
+    directly to the current session and commit once.
+    """
+    try:
+        actor_id = (
+            current_user.id
+            if current_user.is_authenticated
+            else None
+        )
+
+        entry = AuditLog(
+            actor_id=actor_id,
             document_id=document_id,
             action=action,
             outcome=outcome,
             details=details,
         )
-    )
-    db.session.commit()
+
+        db.session.add(entry)
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Failed to save audit log: %s",
+            action,
+        )
 
 
-# --------------------------------------------------
-# DOCUMENT AUTHORIZATION
-# --------------------------------------------------
+# ==================================================
+# 5. FILE VALIDATION
+# ==================================================
 
 def allowed_file(filename):
+    """Check whether the file extension is allowed."""
+
     return (
         "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+        and filename.rsplit(".", 1)[1].lower()
+        in ALLOWED_EXTENSIONS
     )
 
 
+def has_valid_file_signature(file_path, filename):
+    """
+    Perform basic file-format validation.
+
+    This does not replace antivirus or malware scanning.
+    """
+
+    if "." not in filename:
+        return False
+
+    extension = filename.rsplit(".", 1)[1].lower()
+
+    signatures = {
+        "pdf": b"%PDF-",
+        "png": b"\x89PNG\r\n\x1a\n",
+        "jpg": b"\xff\xd8\xff",
+        "jpeg": b"\xff\xd8\xff",
+    }
+
+    try:
+        with open(file_path, "rb") as file:
+            header = file.read(16)
+
+        # Validate PDF, PNG and JPEG signatures.
+        if extension in signatures:
+            return header.startswith(signatures[extension])
+
+        # Basic TXT check: reject NUL bytes in the initial sample.
+        if extension == "txt":
+            return b"\x00" not in header
+
+        # DOCX files are ZIP archives containing Office XML files.
+        if extension == "docx":
+            if not header.startswith(b"PK"):
+                return False
+
+            with zipfile.ZipFile(file_path, "r") as archive:
+                names = set(archive.namelist())
+
+                return (
+                    "[Content_Types].xml" in names
+                    and "word/document.xml" in names
+                )
+
+        return False
+
+    except (
+        OSError,
+        zipfile.BadZipFile,
+        ValueError,
+    ):
+        return False
+
+
+# ==================================================
+# 6. DOCUMENT AUTHORIZATION
+# ==================================================
+
 def can_read_document(document):
+    """Owners and users with read/edit permission can download."""
+
     if document.owner_id == current_user.id:
         return True
 
@@ -146,6 +275,8 @@ def can_read_document(document):
 
 
 def can_edit_document(document):
+    """Only the owner or a user with edit permission can edit."""
+
     if document.owner_id == current_user.id:
         return True
 
@@ -160,9 +291,9 @@ def can_edit_document(document):
     return permission is not None
 
 
-# --------------------------------------------------
-# HOME
-# --------------------------------------------------
+# ==================================================
+# 7. HOME AND HEALTH CHECK
+# ==================================================
 
 @app.route("/")
 def home():
@@ -171,12 +302,15 @@ def home():
 
 @app.route("/health")
 def health():
-    return {"status": "ok", "application": "TrustVault"}
+    return {
+        "status": "ok",
+        "application": "TrustVault",
+    }
 
 
-# --------------------------------------------------
-# REGISTRATION
-# --------------------------------------------------
+# ==================================================
+# 8. USER REGISTRATION
+# ==================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -192,7 +326,9 @@ def register():
         user = User(
             name=name,
             email=email,
-            password_hash=generate_password_hash(form.password.data),
+            password_hash=generate_password_hash(
+                form.password.data
+            ),
             role="viewer",
         )
 
@@ -200,21 +336,29 @@ def register():
 
         try:
             db.session.commit()
+
         except IntegrityError:
             db.session.rollback()
             form.email.errors.append(
                 "An account with this email may already exist."
             )
+
         else:
-            flash("Account created. You can now log in.", "success")
+            flash(
+                "Account created. You can now log in.",
+                "success",
+            )
             return redirect(url_for("login"))
 
-    return render_template("register.html", form=form)
+    return render_template(
+        "register.html",
+        form=form,
+    )
 
 
-# --------------------------------------------------
-# LOGIN AND LOGOUT
-# --------------------------------------------------
+# ==================================================
+# 9. LOGIN AND LOGOUT
+# ==================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -238,47 +382,108 @@ def login():
                 form.password.data,
             )
         ):
-            flash("Invalid email or password.", "error")
+            flash(
+                "Invalid email or password.",
+                "error",
+            )
+
         else:
-            login_user(user, remember=False, fresh=True)
-            flash("You are now logged in.", "success")
+            login_user(
+                user,
+                remember=False,
+                fresh=True,
+            )
+
+            flash(
+                "You are now logged in.",
+                "success",
+            )
             return redirect(url_for("dashboard"))
 
-    return render_template("login.html", form=form)
+    return render_template(
+        "login.html",
+        form=form,
+    )
 
 
 @app.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()
-    flash("You have been logged out.", "success")
+
+    flash(
+        "You have been logged out.",
+        "success",
+    )
+
     return redirect(url_for("login"))
 
 
-# --------------------------------------------------
-# DASHBOARD: OWNED AND SHARED DOCUMENTS
-# --------------------------------------------------
+# ==================================================
+# 10. DASHBOARD AND DOCUMENT SEARCH
+# ==================================================
 
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    documents = (
-        Document.query
-        .filter_by(owner_id=current_user.id)
-        .order_by(Document.created_at.desc())
-        .all()
+    search_query = request.args.get("q", "").strip()
+
+    # Documents owned by the logged-in user.
+    owned_query = Document.query.filter_by(
+        owner_id=current_user.id
     )
 
-    shared_permissions = Permission.query.filter_by(
-        user_id=current_user.id
+    # Documents explicitly shared with the logged-in user.
+    shared_query = (
+        Document.query
+        .join(
+            Permission,
+            Permission.document_id == Document.id,
+        )
+        .join(
+            User,
+            User.id == Permission.user_id,
+        )
+        .filter(
+            Permission.user_id == current_user.id,
+            User.is_active.is_(True),
+        )
+    )
+
+    if search_query:
+        pattern = f"%{search_query}%"
+
+        search_filter = or_(
+            Document.title.ilike(pattern),
+            Document.original_filename.ilike(pattern),
+            Document.category.ilike(pattern),
+            Document.owner.has(
+                User.name.ilike(pattern)
+            ),
+        )
+
+        owned_query = owned_query.filter(search_filter)
+        shared_query = shared_query.filter(search_filter)
+
+    documents = owned_query.order_by(
+        Document.created_at.desc()
+    ).all()
+
+    shared_permissions = shared_query.order_by(
+        Document.created_at.desc()
     ).all()
 
     shared_documents = []
 
-    for permission in shared_permissions:
-        document = db.session.get(Document, permission.document_id)
+    for document in shared_permissions:
+        permission = db.session.scalar(
+            select(Permission).where(
+                Permission.document_id == document.id,
+                Permission.user_id == current_user.id,
+            )
+        )
 
-        if document is not None and document.owner_id != current_user.id:
+        if permission is not None:
             shared_documents.append(
                 (document, permission.permission_type)
             )
@@ -287,12 +492,13 @@ def dashboard():
         "dashboard.html",
         documents=documents,
         shared_documents=shared_documents,
+        search_query=search_query,
     )
 
 
-# --------------------------------------------------
-# ADMIN PAGE
-# --------------------------------------------------
+# ==================================================
+# 11. ADMIN PAGE
+# ==================================================
 
 @app.route("/admin")
 @roles_required("admin")
@@ -300,50 +506,114 @@ def admin_page():
     return render_template("admin.html")
 
 
-# --------------------------------------------------
-# UPLOAD DOCUMENT
-# --------------------------------------------------
+# ==================================================
+# 12. UPLOAD DOCUMENT
+# ==================================================
 
 @app.route("/documents/upload", methods=["POST"])
 @login_required
 def upload_document():
     uploaded_file = request.files.get("file")
 
-    if uploaded_file is None or not uploaded_file.filename:
+    if (
+        uploaded_file is None
+        or not uploaded_file.filename
+    ):
         record_audit(
             "document_upload",
             "failure",
             details="No file was selected.",
         )
-        flash("Please select a file to upload.", "error")
+
+        flash(
+            "Please select a file to upload.",
+            "error",
+        )
         return redirect(url_for("dashboard"))
 
-    original_filename = secure_filename(uploaded_file.filename)
+    original_filename = secure_filename(
+        uploaded_file.filename
+    )
 
-    if not original_filename or not allowed_file(original_filename):
+    if (
+        not original_filename
+        or not allowed_file(original_filename)
+    ):
         record_audit(
             "document_upload",
             "failure",
             details="Rejected file extension.",
         )
-        flash("This file type is not allowed.", "error")
+
+        flash(
+            "This file type is not allowed.",
+            "error",
+        )
         return redirect(url_for("dashboard"))
 
     storage_key = uuid.uuid4().hex
-    storage_path = os.path.join(UPLOAD_FOLDER, storage_key)
+
+    storage_path = os.path.join(
+        app.config["UPLOAD_FOLDER"],
+        storage_key,
+    )
 
     try:
+        os.makedirs(
+            app.config["UPLOAD_FOLDER"],
+            exist_ok=True,
+        )
+
         uploaded_file.save(storage_path)
+
         size_bytes = os.path.getsize(storage_path)
 
         if size_bytes == 0:
             os.remove(storage_path)
+
             record_audit(
                 "document_upload",
                 "failure",
                 details="Empty file rejected.",
             )
-            flash("Empty files are not allowed.", "error")
+
+            flash(
+                "Empty files are not allowed.",
+                "error",
+            )
+            return redirect(url_for("dashboard"))
+
+        if size_bytes > app.config["MAX_CONTENT_LENGTH"]:
+            os.remove(storage_path)
+
+            record_audit(
+                "document_upload",
+                "failure",
+                details="File exceeded the upload size limit.",
+            )
+
+            flash(
+                "File exceeds the 10 MB upload limit.",
+                "error",
+            )
+            return redirect(url_for("dashboard"))
+
+        if not has_valid_file_signature(
+            storage_path,
+            original_filename,
+        ):
+            os.remove(storage_path)
+
+            record_audit(
+                "document_upload",
+                "failure",
+                details="File signature validation failed.",
+            )
+
+            flash(
+                "The file content does not match its extension.",
+                "error",
+            )
             return redirect(url_for("dashboard"))
 
         document = Document(
@@ -359,6 +629,7 @@ def upload_document():
         db.session.add(document)
         db.session.flush()
 
+        # Save the document and success audit in one transaction.
         db.session.add(
             AuditLog(
                 actor_id=current_user.id,
@@ -374,25 +645,44 @@ def upload_document():
     except Exception:
         db.session.rollback()
 
-        if os.path.exists(storage_path):
-            os.remove(storage_path)
+        if os.path.isfile(storage_path):
+            try:
+                os.remove(storage_path)
+            except OSError:
+                app.logger.exception(
+                    "Failed to clean up an incomplete upload."
+                )
 
-        app.logger.exception("Document upload failed")
-        flash("The upload failed. Please try again.", "error")
+        app.logger.exception("Document upload failed.")
+
+        flash(
+            "The upload failed. Please try again.",
+            "error",
+        )
         return redirect(url_for("dashboard"))
 
-    flash("Document uploaded successfully.", "success")
+    flash(
+        "Document uploaded successfully.",
+        "success",
+    )
+
     return redirect(url_for("dashboard"))
 
 
-# --------------------------------------------------
-# DOWNLOAD DOCUMENT
-# --------------------------------------------------
+# ==================================================
+# 13. DOWNLOAD DOCUMENT
+# ==================================================
 
-@app.route("/documents/<int:document_id>/download", methods=["GET"])
+@app.route(
+    "/documents/<int:document_id>/download",
+    methods=["GET"],
+)
 @login_required
 def download_document(document_id):
-    document = db.session.get(Document, document_id)
+    document = db.session.get(
+        Document,
+        document_id,
+    )
 
     if document is None:
         abort(404)
@@ -406,7 +696,10 @@ def download_document(document_id):
         )
         abort(403)
 
-    storage_path = os.path.join(UPLOAD_FOLDER, document.storage_key)
+    storage_path = os.path.join(
+        app.config["UPLOAD_FOLDER"],
+        document.storage_key,
+    )
 
     if not os.path.isfile(storage_path):
         record_audit(
@@ -432,14 +725,20 @@ def download_document(document_id):
     )
 
 
-# --------------------------------------------------
-# SHARE DOCUMENT
-# --------------------------------------------------
+# ==================================================
+# 14. SHARE DOCUMENT
+# ==================================================
 
-@app.route("/documents/<int:document_id>/share", methods=["POST"])
+@app.route(
+    "/documents/<int:document_id>/share",
+    methods=["POST"],
+)
 @login_required
 def share_document(document_id):
-    document = db.session.get(Document, document_id)
+    document = db.session.get(
+        Document,
+        document_id,
+    )
 
     if document is None:
         abort(404)
@@ -453,14 +752,29 @@ def share_document(document_id):
         )
         abort(403)
 
-    email = request.form.get("email", "").strip().lower()
-    permission_type = request.form.get("permission_type", "")
+    email = request.form.get(
+        "email", ""
+    ).strip().lower()
+
+    permission_type = request.form.get(
+        "permission_type", ""
+    )
 
     if permission_type not in ("read", "edit"):
-        abort(400, description="Invalid permission type.")
+        abort(
+            400,
+            description="Invalid permission type.",
+        )
 
-    if not email or len(email) > 255:
-        abort(400, description="Enter a valid email address.")
+    if (
+        not email
+        or len(email) > 255
+        or "@" not in email
+    ):
+        abort(
+            400,
+            description="Enter a valid email address.",
+        )
 
     recipient = db.session.scalar(
         select(User).where(
@@ -470,11 +784,17 @@ def share_document(document_id):
     )
 
     if recipient is None:
-        flash("No active account was found for that email.", "error")
+        flash(
+            "No active account was found for that email.",
+            "error",
+        )
         return redirect(url_for("dashboard"))
 
     if recipient.id == current_user.id:
-        flash("You already own this document.", "error")
+        flash(
+            "You already own this document.",
+            "error",
+        )
         return redirect(url_for("dashboard"))
 
     permission = db.session.scalar(
@@ -492,6 +812,7 @@ def share_document(document_id):
         )
         db.session.add(permission)
         action = "permission_grant"
+
     else:
         permission.permission_type = permission_type
         action = "permission_update"
@@ -511,13 +832,17 @@ def share_document(document_id):
 
     db.session.commit()
 
-    flash("Document access updated successfully.", "success")
+    flash(
+        "Document access updated successfully.",
+        "success",
+    )
+
     return redirect(url_for("dashboard"))
 
 
-# --------------------------------------------------
-# REVOKE DOCUMENT ACCESS
-# --------------------------------------------------
+# ==================================================
+# 15. REVOKE DOCUMENT ACCESS
+# ==================================================
 
 @app.route(
     "/documents/<int:document_id>/revoke/<int:user_id>",
@@ -525,7 +850,10 @@ def share_document(document_id):
 )
 @login_required
 def revoke_document_access(document_id, user_id):
-    document = db.session.get(Document, document_id)
+    document = db.session.get(
+        Document,
+        document_id,
+    )
 
     if document is None:
         abort(404)
@@ -547,29 +875,229 @@ def revoke_document_access(document_id, user_id):
     )
 
     if permission is None:
-        flash("That user has no permission to revoke.", "error")
+        flash(
+            "That user has no permission to revoke.",
+            "error",
+        )
         return redirect(url_for("dashboard"))
 
-    db.session.add(
-        AuditLog(
-            actor_id=current_user.id,
-            document_id=document.id,
-            action="permission_revoke",
-            outcome="success",
-            details=f"Access revoked for user ID {user_id}.",
+    try:
+        db.session.add(
+            AuditLog(
+                actor_id=current_user.id,
+                document_id=document.id,
+                action="permission_revoke",
+                outcome="success",
+                details=f"Access revoked for user ID {user_id}.",
+            )
         )
+
+        db.session.delete(permission)
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Permission revocation failed.")
+
+        flash(
+            "Could not revoke access. Please try again.",
+            "error",
+        )
+        return redirect(url_for("dashboard"))
+
+    flash(
+        "Document access revoked.",
+        "success",
     )
 
-    db.session.delete(permission)
-    db.session.commit()
-
-    flash("Document access revoked.", "success")
     return redirect(url_for("dashboard"))
 
 
-# --------------------------------------------------
-# RUN APPLICATION
-# --------------------------------------------------
+# ==================================================
+# 16. EDIT DOCUMENT METADATA
+# ==================================================
+
+@app.route(
+    "/documents/<int:document_id>/edit",
+    methods=["POST"],
+)
+@login_required
+def edit_document(document_id):
+    document = db.session.get(
+        Document,
+        document_id,
+    )
+
+    if document is None:
+        abort(404)
+
+    # Only the owner can edit metadata through this route.
+    if document.owner_id != current_user.id:
+        record_audit(
+            "edit_document",
+            "denied",
+            document_id=document.id,
+            details="Unauthorized metadata edit attempt.",
+        )
+        abort(403)
+
+    title = request.form.get(
+        "title", ""
+    ).strip()
+
+    category = request.form.get(
+        "category", ""
+    ).strip()
+
+    if not title or len(title) > 200:
+        flash(
+            "Title must contain 1–200 characters.",
+            "error",
+        )
+        return redirect(url_for("dashboard"))
+
+    if not category or len(category) > 100:
+        flash(
+            "Category must contain 1–100 characters.",
+            "error",
+        )
+        return redirect(url_for("dashboard"))
+
+    try:
+        document.title = title
+        document.category = category
+
+        db.session.add(
+            AuditLog(
+                actor_id=current_user.id,
+                document_id=document.id,
+                action="edit_document",
+                outcome="success",
+                details="Document title/category updated.",
+            )
+        )
+
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Metadata update failed.")
+
+        flash(
+            "Could not update document details.",
+            "error",
+        )
+        return redirect(url_for("dashboard"))
+
+    flash(
+        "Document details updated successfully.",
+        "success",
+    )
+
+    return redirect(url_for("dashboard"))
+
+
+# ==================================================
+# 17. DELETE DOCUMENT
+# ==================================================
+
+@app.route(
+    "/documents/<int:document_id>/delete",
+    methods=["POST"],
+)
+@login_required
+def delete_document(document_id):
+    document = db.session.get(
+        Document,
+        document_id,
+    )
+
+    if document is None:
+        abort(404)
+
+    # Only the owner can delete a document.
+    if document.owner_id != current_user.id:
+        record_audit(
+            "delete_document",
+            "denied",
+            document_id=document.id,
+            details="Unauthorized deletion attempt.",
+        )
+        abort(403)
+
+    deleted_document_id = document.id
+
+    storage_path = os.path.join(
+        app.config["UPLOAD_FOLDER"],
+        document.storage_key,
+    )
+
+    try:
+        # Remove document permissions.
+        Permission.query.filter_by(
+            document_id=document.id
+        ).delete(synchronize_session=False)
+
+        # Keep the deletion event without a foreign key
+        # referencing the document being deleted.
+        db.session.add(
+            AuditLog(
+                actor_id=current_user.id,
+                document_id=None,
+                action="delete_document",
+                outcome="success",
+                details=(
+                    f"Deleted document ID {deleted_document_id}."
+                ),
+            )
+        )
+
+        db.session.delete(document)
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Document deletion failed.")
+
+        flash(
+            "Could not delete the document. Please try again.",
+            "error",
+        )
+        return redirect(url_for("dashboard"))
+
+    # Remove the private file after the database commit.
+    if os.path.isfile(storage_path):
+        try:
+            os.remove(storage_path)
+
+        except OSError:
+            app.logger.exception(
+                "Database record deleted, but private file "
+                "cleanup failed."
+            )
+
+            flash(
+                "Document record deleted, but file cleanup "
+                "needs attention.",
+                "error",
+            )
+            return redirect(url_for("dashboard"))
+
+    flash(
+        "Document deleted successfully.",
+        "success",
+    )
+
+    return redirect(url_for("dashboard"))
+
+
+# ==================================================
+# 18. CREATE MISSING TABLES AND RUN
+# ==================================================
+
+with app.app_context():
+    db.create_all()
+
 
 if __name__ == "__main__":
     app.run(debug=True)

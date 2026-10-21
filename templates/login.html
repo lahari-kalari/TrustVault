@@ -1,43 +1,243 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Log In | TrustVault</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TrustVault | Login</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #101828, #23395d);
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            padding: 38px;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e8efff;
+            color: #2457d6;
+            border-radius: 16px;
+            font-size: 30px;
+        }
+
+        .logo h1 {
+            color: #172b4d;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #344054;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        input:focus {
+            border-color: #2457d6;
+            box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.12);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #2457d6;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #1946b8;
+        }
+
+        .messages {
+            margin-bottom: 18px;
+        }
+
+        .message {
+            padding: 11px;
+            margin-bottom: 8px;
+            border-radius: 7px;
+            background: #fff0f0;
+            color: #b42318;
+            font-size: 14px;
+        }
+
+        .success-message {
+            padding: 11px;
+            margin-bottom: 8px;
+            border-radius: 7px;
+            background: #ecfdf3;
+            color: #027a48;
+            font-size: 14px;
+        }
+
+        .field-error {
+            margin-top: 6px;
+            color: #b42318;
+            font-size: 13px;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 22px;
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #2457d6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .security-note {
+            text-align: center;
+            margin-top: 25px;
+            color: #98a2b3;
+            font-size: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 26px 22px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Log in to TrustVault</h1>
+    <main class="login-container">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <p role="status">{{ message }}</p>
-      {% endfor %}
-    {% endwith %}
+        <div class="logo">
+            <div class="logo-icon" aria-hidden="true">&#128274;</div>
+            <h1>TrustVault</h1>
+            <p>Secure document access starts here.</p>
+        </div>
 
-    <form method="POST">
-        {{ form.hidden_tag() }}
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages" role="status" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="{% if category == 'success' %}success-message{% else %}message{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-        <p>
-            {{ form.email.label }}<br>
-            {{ form.email(autocomplete="email") }}
-            {% for error in form.email.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </p>
+        <!-- Login form -->
+        <form method="POST" action="{{ url_for('login') }}">
 
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(autocomplete="current-password") }}
-            {% for error in form.password.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </p>
+            {{ form.hidden_tag() }}
 
-        {{ form.submit() }}
-    </form>
+            <div class="form-group">
+                <label for="email">Email address</label>
 
-    <p>New to TrustVault? <a href="{{ url_for('register') }}">Create an account</a></p>
-    <p><a href="{{ url_for('home') }}">Back to homepage</a></p>
+                {{ form.email(
+                    id="email",
+                    placeholder="Enter your email",
+                    autocomplete="username",
+                    required=true
+                ) }}
+
+                {% for error in form.email.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                {{ form.password(
+                    id="password",
+                    placeholder="Enter your password",
+                    autocomplete="current-password",
+                    required=true
+                ) }}
+
+                {% for error in form.password.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="login-btn">
+                Sign In
+            </button>
+
+        </form>
+
+        <div class="register-link">
+            Don't have an account?
+            <a href="{{ url_for('register') }}">Create account</a>
+        </div>
+
+        <div class="security-note">
+            Protected document access · TrustVault
+        </div>
+
+    </main>
 </body>
 </html>
