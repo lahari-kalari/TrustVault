@@ -1,0 +1,21 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin | TrustVault</title>
+</head>
+<body>
+    <h1>TrustVault Admin</h1>
+    <p>Welcome, {{ current_user.name }}.</p>
+    <p>Your administrator role has been verified.</p>
+    <p>The full audit activity view will be added in a later step.</p>
+    <p><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+
+    <form method="POST" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Log out</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,32 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard | TrustVault</title>
+</head>
+<body>
+    <h1>TrustVault Dashboard</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p role="status">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    <p>Welcome, {{ current_user.name }}!</p>
+    <p>Your role: <strong>{{ current_user.role }}</strong></p>
+
+    {% if current_user.role == "admin" %}
+        <p><a href="{{ url_for('admin_page') }}">Open admin page</a></p>
+    {% endif %}
+
+    <p>Document management will be added in a later step.</p>
+
+    <form method="POST" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Log out</button>
+    </form>
+</body>
+</html>
