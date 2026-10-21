@@ -68,7 +68,10 @@ def test_dashboard_requires_login(client):
     assert response.status_code == 302
 
 
+
 def test_viewer_cannot_access_admin_page(client):
+    from models import AuditLog
+
     login(
         client,
         "viewer@example.com",
@@ -78,6 +81,22 @@ def test_viewer_cannot_access_admin_page(client):
     response = client.get("/admin")
 
     assert response.status_code == 403
+
+    with app.app_context():
+        event = (
+            db.session.query(AuditLog)
+            .filter_by(
+                action="role_access_denied",
+                outcome="denied",
+            )
+            .order_by(AuditLog.id.desc())
+            .first()
+        )
+
+        assert event is not None
+        assert event.actor_id is not None
+        assert "/admin" in event.details
+
 
 
 def test_user_cannot_download_private_document(client):
