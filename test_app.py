@@ -741,3 +741,24 @@ def test_record_audit_handles_database_commit_failure(
     assert rollback_called
     assert "Failed to save audit log: audit_failure_test" in caplog.text
     assert "Simulated audit database failure" in caplog.text
+
+
+def test_csrf_rejects_post_without_token(client):
+    original_csrf_setting = app.config["WTF_CSRF_ENABLED"]
+
+    try:
+        app.config["WTF_CSRF_ENABLED"] = True
+
+        response = client.post(
+            "/login",
+            data={
+                "email": "owner@example.com",
+                "password": "OwnerTestPass123!",
+            },
+        )
+
+        assert response.status_code == 400
+
+    finally:
+        app.config["WTF_CSRF_ENABLED"] = original_csrf_setting
+

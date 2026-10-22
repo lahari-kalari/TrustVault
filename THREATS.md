@@ -450,7 +450,13 @@ The current automated suite contains tests for:
 
 
 
-Unauthorized metadata editing and unauthorized deletion are covered by `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document`. Both tests passed. CSRF behavior, login rate limiting, and file-cleanup failure still require dedicated tests. Audit database commit failure now has a dedicated passing test that verifies exception handling, rollback attempts, and error logging; reliable audit persistence during database failure remains unresolved.
+Unauthorized metadata editing and unauthorized deletion are covered by `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document`. Both tests passed. 
+
+CSRF protection now has a dedicated passing test for rejecting a login POST without a CSRF token. Login rate limiting and file-cleanup failure still require dedicated tests. Audit database commit failure has a dedicated passing test that verifies exception handling, rollback attempts, and error logging; reliable audit persistence during database failure remains unresolved.
+
+- **CSRF protection:** `test_csrf_rejects_post_without_token` temporarily enables `WTF_CSRF_ENABLED` and verifies that a login POST without a CSRF token returns HTTP 400. The test passed as part of the 18-test suite.
+
+- **Scope limitation:** This test verifies rejection of a tokenless login POST. It does not independently verify every state-changing route or test invalid and expired tokens.
 
 - Simulated audit database commit failure: rollback attempt, error logging, and exception handling.
 
