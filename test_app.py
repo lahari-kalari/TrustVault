@@ -466,3 +466,63 @@ def test_upload_accepts_text_file(client):
 
         assert document is not None
         assert document.title == "valid-test.txt"
+        
+        
+
+def test_upload_rejects_invalid_text_signature(client):
+    login(
+        client,
+        "owner@example.com",
+        "OwnerTestPass123!",
+    )
+
+    response = client.post(
+        "/documents/upload",
+        data={
+            "file": (
+                BytesIO(b"\x00\x01\x02\x03"),
+                "invalid.txt",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+
+    with app.app_context():
+        document = Document.query.filter_by(
+            original_filename="invalid.txt"
+        ).first()
+
+        assert document is None
+
+
+def test_upload_rejects_empty_file(client):
+    login(
+        client,
+        "owner@example.com",
+        "OwnerTestPass123!",
+    )
+
+    response = client.post(
+        "/documents/upload",
+        data={
+            "file": (
+                BytesIO(b""),
+                "empty.txt",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+
+    with app.app_context():
+        document = Document.query.filter_by(
+            original_filename="empty.txt"
+        ).first()
+
+        assert document is None
+
