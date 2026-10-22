@@ -790,3 +790,38 @@ def test_login_rate_limit_blocks_sixth_attempt(client):
         limiter.enabled = False
         limiter.reset()
 
+def test_upload_rejects_file_over_size_limit(client):
+    login(
+        client,
+        "owner@example.com",
+        "OwnerTestPass123!",
+    )
+
+    oversized_content = b"A" * (
+        app.config["MAX_CONTENT_LENGTH"] + 1
+    )
+
+    response = client.post(
+        "/documents/upload",
+        data={
+            "title": "Oversized File",
+            "category": "General",
+            "file": (
+                BytesIO(oversized_content),
+                "oversized.txt",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/dashboard")
+
+    with app.app_context():
+        document = Document.query.filter_by(
+            original_filename="oversized.txt"
+        ).first()
+
+        assert document is None
+
