@@ -578,3 +578,33 @@ def test_audit_log_rejects_invalid_outcome(client):
 
         assert event_count == 0
 
+def test_audit_log_survives_user_deletion(client):
+    with app.app_context():
+        owner = User.query.filter_by(
+            email="owner@example.com"
+        ).first()
+        assert owner is not None
+
+        owner_id = owner.id
+
+        event = AuditLog(
+            actor_id=owner_id,
+            action="user_deletion_test",
+            outcome="success",
+            details="Testing audit retention after user deletion",
+        )
+
+        db.session.add(event)
+        db.session.commit()
+
+        event_id = event.id
+
+        db.session.delete(owner)
+        db.session.commit()
+
+        saved_event = db.session.get(AuditLog, event_id)
+
+        assert saved_event is not None
+        assert saved_event.action == "user_deletion_test"
+        assert saved_event.actor_id is None
+

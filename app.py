@@ -21,7 +21,8 @@ from flask_login import (
     logout_user,
 )
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import (
@@ -79,7 +80,20 @@ if not app.config["SECRET_KEY"]:
 
 csrf = CSRFProtect(app)
 
+
 db.init_app(app)
+
+
+@event.listens_for(Engine, "connect")
+def enable_sqlite_foreign_keys(
+    dbapi_connection,
+    connection_record,
+):
+    if dbapi_connection.__class__.__module__ == "sqlite3":
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
