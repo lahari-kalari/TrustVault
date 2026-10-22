@@ -1,4 +1,4 @@
-\# TrustVault — AI Prompt and Verification Log
+﻿\# TrustVault â€” AI Prompt and Verification Log
 
 
 
@@ -6,7 +6,7 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 
 
 
-\## Entry 1 — 2026-10-21: Authentication and role-based authorization
+\## Entry 1 â€” 2026-10-21: Authentication and role-based authorization
 
 
 
@@ -24,7 +24,7 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 
 
 
-\## Entry 2 — 2026-10-21: Document sharing and access revocation
+\## Entry 2 â€” 2026-10-21: Document sharing and access revocation
 
 
 
@@ -42,7 +42,7 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 
 
 
-\## Entry 3 — 2026-10-21: Investigating missing shared documents
+\## Entry 3 â€” 2026-10-21: Investigating missing shared documents
 
 
 
@@ -60,7 +60,7 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 
 
 
-\## Entry 4 — 2026-10-21: Authorization checks after revocation
+\## Entry 4 â€” 2026-10-21: Authorization checks after revocation
 
 
 
@@ -78,7 +78,7 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 
 
 
-\## Entry 5 — 2026-10-21: Automated security regression tests
+\## Entry 5 â€” 2026-10-21: Automated security regression tests
 
 
 
@@ -103,7 +103,7 @@ This log records AI-assisted development decisions, incorrect assumptions, verif
 Add an entry after each significant AI-assisted development or security-testing task. Record the actual request, generated suggestion or output, any incorrect assumption or limitation, the corrective action, and a link to the relevant commit. If no commit exists yet, record that explicitly and add the commit link after the change is committed. Never invent test results or commit identifiers.
 
 
-## Entry 6 — 2026-10-21: Audit-trail verification and repository cleanup
+## Entry 6 â€” 2026-10-21: Audit-trail verification and repository cleanup
 
 - **What was requested:** Verify that denied administrator access is recorded in the audit trail, and stop tracking generated Python cache files and temporary test uploads.
 
@@ -118,4 +118,21 @@ Add an entry after each significant AI-assisted development or security-testing 
 - **Related audit-test commit:** https://github.com/lahari-kalari/TrustVault/commit/4e4c87e7c4f004788ba7e36472a2e0c056082902
 
 - **Related repository-cleanup commit:** https://github.com/lahari-kalari/TrustVault/commit/d2b2fa7
+
+
+## Entry 7 — 2026-10-22: SQLite foreign-key enforcement and audit retention
+
+- **What was requested:** Ensure SQLite enforces foreign-key constraints and verify that audit records survive deletion of a user.
+
+- **What the tool produced:** An initial foreign-key listener that accessed `db.engine` during application setup, followed by a revised SQLAlchemy `Engine` connection listener. A test was added to check audit-log retention after deleting the actor.
+
+- **What was wrong:** Accessing `db.engine` too early could initialize the engine before the test fixture overrides the database URI. The first revised attempt also failed because `event` was missing from the imports.
+
+- **What was done instead:** Import `event` and `Engine` from SQLAlchemy and register the SQLite foreign-key handler with `@event.listens_for(Engine, "connect")`. Add a test confirming the audit event remains and its `actor_id` becomes `NULL` after user deletion.
+
+- **Verification:** The focused audit-retention test passed. The user subsequently confirmed that the full test suite passed all 14 tests.
+
+- **Related implementation commit:** https://github.com/lahari-kalari/TrustVault/commit/05a2272
+
+
 
