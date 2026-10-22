@@ -3,6 +3,7 @@ import os
 
 import pytest
 from werkzeug.security import generate_password_hash
+from sqlalchemy.exc import IntegrityError
 
 from app import app, db
 from models import User, Document, Permission, AuditLog
@@ -553,3 +554,27 @@ def test_audit_event_is_persisted(client):
         assert event is not None
         assert event.actor_id is not None
         assert "/admin" in event.details
+        
+
+
+def test_audit_log_rejects_invalid_outcome(client):
+    with app.app_context():
+        event = AuditLog(
+            action="security_test",
+            outcome="unknown",
+            details="Testing invalid audit outcome",
+        )
+
+        db.session.add(event)
+
+        with pytest.raises(IntegrityError):
+            db.session.commit()
+
+        db.session.rollback()
+
+        event_count = AuditLog.query.filter_by(
+            action="security_test"
+        ).count()
+
+        assert event_count == 0
+
