@@ -5,18 +5,21 @@ import pytest
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError
 
-from app import app, db, record_audit
+from app import app, db, record_audit, limiter
 from models import User, Document, Permission, AuditLog
-
 @pytest.fixture
 def client():
     app.config.update(
         TESTING=True,
         WTF_CSRF_ENABLED=False,
+        RATELIMIT_ENABLED=False,
         SECRET_KEY="test-secret-key",
         SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
         UPLOAD_FOLDER="test_private_uploads",
     )
+
+    limiter.enabled = False
+    limiter.reset()
 
     with app.app_context():
         db.drop_all()
@@ -761,4 +764,29 @@ def test_csrf_rejects_post_without_token(client):
 
     finally:
         app.config["WTF_CSRF_ENABLED"] = original_csrf_setting
+
+def test_login_rate_limit_blocks_sixth_attempt(client):
+    limiter.enabled = True
+    limiter.reset()
+
+    try:
+        responses = []
+
+        for _ in range(6):
+            response = client.post(
+                "/login",
+                data={
+                    "email": "unknown@example.com",
+                    "password": "WrongPassword123!",
+                },
+                follow_redirects=False,
+            )
+            responses.append(response.status_code)
+
+        assert responses[:5] != [429] * 5
+        assert responses[5] == 429
+
+    finally:
+        limiter.enabled = False
+        limiter.reset()
 

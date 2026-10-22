@@ -23,6 +23,8 @@ from flask_login import (
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import select, or_, event
 from sqlalchemy.engine import Engine
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import (
@@ -40,6 +42,13 @@ from models import db, User, Document, Permission, AuditLog
 # ==================================================
 
 app = Flask(__name__, instance_relative_config=True)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://",
+    enabled=not app.config.get("TESTING", False),
+)
 
 os.makedirs(app.instance_path, exist_ok=True)
 
@@ -375,6 +384,7 @@ def register():
 # ==================================================
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))
