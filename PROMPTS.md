@@ -142,7 +142,15 @@ Add an entry after each significant AI-assisted development or security-testing 
 - **What was wrong or missing:** The existing threat model explicitly identified unauthorized editing and deletion tests as missing. The application routes already checked document ownership, but those denial paths lacked direct automated coverage.
 - **Correction:** Added tests asserting HTTP 403, unchanged document data or continued document existence, and a corresponding denied audit event. Updated `THREATS.md` to reflect the new coverage.
 - **Verification:** The targeted tests passed (2 passed, 14 deselected). The complete suite passed (16 passed).
-- **Commit:** Pending; add the actual commit URL after committing these changes.
+- **Commit:** https://github.com/lahari-kalari/TrustVault/commit/7858225
 
+## Entry 9 — 2026-10-22: Oversized upload rejection and audit logging
+
+- **What was requested:** Verify that uploads exceeding the configured 10 MB limit are rejected and recorded in the audit trail.
+- **What the tool produced:** An automated regression test for an oversized file upload and an update to the `RequestEntityTooLarge` error handler.
+- **What was wrong:** The request was redirected to the dashboard, but the initial test showed that the rejection was not recorded in the audit log.
+- **What was done instead:** Added a failure audit event to the error handler and extended the test to verify that no document is created and that the audit event contains the size-limit details.
+- **Verification:** The targeted test passed, and the full test suite passed with 20 tests.
+- **Commit:** https://github.com/lahari-kalari/TrustVault/commit/a54bf09
 
 
