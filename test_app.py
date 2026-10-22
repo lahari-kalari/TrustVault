@@ -5,8 +5,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 
 from app import app, db
-from models import User, Document, Permission
-
+from models import User, Document, Permission, AuditLog
 
 @pytest.fixture
 def client():
@@ -526,3 +525,31 @@ def test_upload_rejects_empty_file(client):
 
         assert document is None
 
+
+
+def test_audit_event_is_persisted(client):
+
+    login(
+        client,
+        "viewer@example.com",
+        "ViewerTestPass123!",
+    )
+
+    response = client.get("/admin")
+
+    assert response.status_code == 403
+
+    with app.app_context():
+        event = (
+            AuditLog.query
+            .filter_by(
+                action="role_access_denied",
+                outcome="denied",
+            )
+            .order_by(AuditLog.id.desc())
+            .first()
+        )
+
+        assert event is not None
+        assert event.actor_id is not None
+        assert "/admin" in event.details
