@@ -817,7 +817,6 @@ def test_upload_rejects_file_over_size_limit(client):
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/dashboard")
-
     with app.app_context():
         document = Document.query.filter_by(
             original_filename="oversized.txt"
@@ -825,3 +824,16 @@ def test_upload_rejects_file_over_size_limit(client):
 
         assert document is None
 
+        event = (
+            AuditLog.query
+            .filter_by(
+                action="document_upload",
+                outcome="failure",
+            )
+            .order_by(AuditLog.id.desc())
+            .first()
+        )
+
+        assert event is not None
+        assert event.actor_id is not None
+        assert "size limit" in event.details.lower()

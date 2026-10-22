@@ -119,6 +119,12 @@ login_manager.session_protection = "strong"
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_too_large(error):
+    record_audit(
+        "document_upload",
+        "failure",
+        details="Request exceeded the upload size limit.",
+    )
+
     flash(
         "The request exceeds the 10 MB upload limit.",
         "error",
