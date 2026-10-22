@@ -5,7 +5,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError
 
-from app import app, db
+from app import app, db, record_audit
 from models import User, Document, Permission, AuditLog
 
 @pytest.fixture
@@ -708,3 +708,36 @@ def test_viewer_cannot_delete_another_users_document(client):
         assert event is not None
 
 
+
+
+
+def test_record_audit_handles_database_commit_failure(
+    client,
+    monkeypatch,
+    caplog,
+):
+    def fail_commit():
+        raise RuntimeError("Simulated audit database failure")
+
+    rollback_called = False
+    original_rollback = db.session.rollback
+
+    def track_rollback():
+        nonlocal rollback_called
+        rollback_called = True
+        original_rollback()
+
+    monkeypatch.setattr(db.session, "commit", fail_commit)
+    monkeypatch.setattr(db.session, "rollback", track_rollback)
+    with app.test_request_context("/"):
+        with app.app_context():
+            with caplog.at_level("ERROR"):
+                record_audit(
+                    action="audit_failure_test",
+                    outcome="success",
+                    details="Simulated database failure",
+                )
+
+    assert rollback_called
+    assert "Failed to save audit log: audit_failure_test" in caplog.text
+    assert "Simulated audit database failure" in caplog.text

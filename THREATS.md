@@ -358,7 +358,7 @@ Can access the administrator page through the `admin` role check. The admin role
 
 
 
-\*\*Verification:\*\* `test\_audit\_event\_is\_persisted`, `test\_audit\_log\_rejects\_invalid\_outcome`, and `test\_audit\_log\_survives\_user\_deletion`.
+**Verification:** `test_audit_event_is_persisted`, `test_audit_log_rejects_invalid_outcome`, `test_audit_log_survives_user_deletion`, and `test_record_audit_handles_database_commit_failure`. The failure test simulates a commit exception and verifies that the helper attempts rollback, logs the failure, and does not propagate the exception. The test does not establish that an audit event is persisted when the database is unavailable.
 
 
 
@@ -450,8 +450,9 @@ The current automated suite contains tests for:
 
 
 
-Unauthorized metadata editing and unauthorized deletion are covered by `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document`. Both tests passed. CSRF behavior, login rate limiting, audit database failure, and file-cleanup failure still require dedicated tests before those cases can be claimed as verified.
+Unauthorized metadata editing and unauthorized deletion are covered by `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document`. Both tests passed. CSRF behavior, login rate limiting, and file-cleanup failure still require dedicated tests. Audit database commit failure now has a dedicated passing test that verifies exception handling, rollback attempts, and error logging; reliable audit persistence during database failure remains unresolved.
 
+- Simulated audit database commit failure: rollback attempt, error logging, and exception handling.
 
 
 Run the test suite with:
