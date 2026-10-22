@@ -135,4 +135,14 @@ Add an entry after each significant AI-assisted development or security-testing 
 - **Related implementation commit:** https://github.com/lahari-kalari/TrustVault/commit/05a2272
 
 
+### 2026-10-22 — Unauthorized edit and delete security tests
+
+- **Request:** Add automated tests proving that a viewer cannot edit or delete another user's document.
+- **Tool output:** Added `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document` in `test_app.py`.
+- **What was wrong or missing:** The existing threat model explicitly identified unauthorized editing and deletion tests as missing. The application routes already checked document ownership, but those denial paths lacked direct automated coverage.
+- **Correction:** Added tests asserting HTTP 403, unchanged document data or continued document existence, and a corresponding denied audit event. Updated `THREATS.md` to reflect the new coverage.
+- **Verification:** The targeted tests passed (2 passed, 14 deselected). The complete suite passed (16 passed).
+- **Commit:** Pending; add the actual commit URL after committing these changes.
+
+
 

@@ -608,3 +608,103 @@ def test_audit_log_survives_user_deletion(client):
         assert saved_event.action == "user_deletion_test"
         assert saved_event.actor_id is None
 
+def test_viewer_cannot_edit_another_users_document(client):
+    with app.app_context():
+        owner = User.query.filter_by(
+            email="owner@example.com"
+        ).first()
+
+        document = Document(
+            title="Original Title",
+            original_filename="original.txt",
+            category="General",
+            storage_key="edit-security-test.txt",
+            content_type="text/plain",
+            size_bytes=12,
+            owner_id=owner.id,
+        )
+
+        db.session.add(document)
+        db.session.commit()
+        document_id = document.id
+
+    login(
+        client,
+        "viewer@example.com",
+        "ViewerTestPass123!",
+    )
+
+    response = client.post(
+        f"/documents/{document_id}/edit",
+        data={
+            "title": "Unauthorized Change",
+            "category": "Changed",
+        },
+    )
+
+    assert response.status_code == 403
+
+    with app.app_context():
+        document = db.session.get(Document, document_id)
+
+        assert document is not None
+        assert document.title == "Original Title"
+        assert document.category == "General"
+
+        event = AuditLog.query.filter_by(
+            action="edit_document",
+            outcome="denied",
+            document_id=document_id,
+        ).first()
+
+        assert event is not None
+
+
+def test_viewer_cannot_delete_another_users_document(client):
+    with app.app_context():
+        owner = User.query.filter_by(
+            email="owner@example.com"
+        ).first()
+
+        document = Document(
+            title="Protected Document",
+            original_filename="protected.txt",
+            category="General",
+            storage_key="delete-security-test.txt",
+            content_type="text/plain",
+            size_bytes=10,
+            owner_id=owner.id,
+        )
+
+        db.session.add(document)
+        db.session.commit()
+        document_id = document.id
+
+    login(
+        client,
+        "viewer@example.com",
+        "ViewerTestPass123!",
+    )
+
+    response = client.post(
+        f"/documents/{document_id}/delete",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 403
+
+    with app.app_context():
+        document = db.session.get(Document, document_id)
+
+        assert document is not None
+        assert document.title == "Protected Document"
+
+        event = AuditLog.query.filter_by(
+            action="delete_document",
+            outcome="denied",
+            document_id=document_id,
+        ).first()
+
+        assert event is not None
+
+

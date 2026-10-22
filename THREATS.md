@@ -220,7 +220,7 @@ Can access the administrator page through the `admin` role check. The admin role
 
 
 
-\*\*Verification:\*\* The current tests should be expanded to cover unauthorized metadata editing and deletion directly.
+**Verification:** `test_viewer_cannot_edit_another_users_document` verifies that an unauthorized edit returns HTTP 403, preserves the original title and category, and records a denied audit event. `test_viewer_cannot_delete_another_users_document` verifies that an unauthorized delete returns HTTP 403, preserves the document record, and records a denied audit event. Both tests passed in the development test run.
 
 
 
@@ -450,7 +450,7 @@ The current automated suite contains tests for:
 
 
 
-Tests for unauthorized metadata editing, unauthorized deletion, CSRF behavior, login rate limiting, audit database failure, and file-cleanup failure should be added before claiming those cases are fully verified.
+Unauthorized metadata editing and unauthorized deletion are covered by `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document`. Both tests passed. CSRF behavior, login rate limiting, audit database failure, and file-cleanup failure still require dedicated tests before those cases can be claimed as verified.
 
 
 
@@ -512,7 +512,7 @@ These risks should be reassessed before production deployment.
 
 \- \[ ] CSRF and production session settings are verified.
 
-\- \[ ] Unauthorized edit and delete tests are added.
+- [x] Unauthorized edit and delete tests are added and passing.
 
 \- \[ ] Filesystem cleanup and orphan-file handling are tested.
 
