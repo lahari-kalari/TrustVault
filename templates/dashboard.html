@@ -1,35 +1,1380 @@
-<form class="search-form" method="GET" action="{{ url_for('dashboard') }}">
-    <input
-        type="text"
-        name="q"
-        placeholder="Search by title, filename, category, or owner"
-        value="{{ search_query }}"
-        aria-label="Search documents"
-    >
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#102b5c">
+    <title>Dashboard | TrustVault</title>
 
-    <label for="start-date">Start date</label>
-    <input
-        type="date"
-        id="start-date"
-        name="start_date"
-        value="{{ start_date }}"
-        aria-label="Start date"
-    >
+    <style>
+        :root {
+            --navy: #102b5c;
+            --blue: #2457d6;
+            --blue-dark: #1946b8;
+            --text: #172b4d;
+            --muted: #667085;
+            --border: #e3eaf4;
+            --surface: #f4f7fc;
+            --green: #067647;
+            --red: #b42318;
+        }
 
-    <label for="end-date">End date</label>
-    <input
-        type="date"
-        id="end-date"
-        name="end_date"
-        value="{{ end_date }}"
-        aria-label="End date"
-    >
+        * {
+            box-sizing: border-box;
+        }
 
-    <button class="search-btn" type="submit">Search</button>
+        html {
+            scroll-behavior: smooth;
+        }
 
-    {% if search_query or start_date or end_date %}
-        <a class="clear-btn" href="{{ url_for('dashboard') }}">
-            Clear filters
-        </a>
-    {% endif %}
-</form>
+        body {
+            margin: 0;
+            color: var(--text);
+            background: #f6f8fc;
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                        "Segoe UI", Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .layout {
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            width: 250px;
+            padding: 25px 17px;
+            color: #dce7ff;
+            background: var(--navy);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 0 10px;
+            margin-bottom: 42px;
+            color: #fff;
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -.7px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            color: var(--navy);
+            background: #fff;
+            font-size: 21px;
+        }
+
+        .nav-label {
+            margin: 0 12px 12px;
+            color: #92a8d4;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: grid;
+            gap: 7px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 45px;
+            padding: 0 13px;
+            border-radius: 9px;
+            color: #dce7ff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #fff;
+            background: #23427d;
+        }
+
+        .nav-icon {
+            width: 23px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+        }
+
+        .security-card {
+            margin: 22px 3px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 11px;
+            background: rgba(255,255,255,.06);
+        }
+
+        .security-card strong {
+            display: block;
+            margin-bottom: 7px;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .security-card p {
+            margin: 0;
+            color: #c1d1ef;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 8px 0;
+            border-top: 1px solid rgba(255,255,255,.14);
+        }
+
+        .avatar {
+            flex: 0 0 37px;
+            width: 37px;
+            height: 37px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: var(--navy);
+            background: #dce8ff;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .user-details {
+            min-width: 0;
+        }
+
+        .user-details strong,
+        .user-details span {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .user-details strong {
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .user-details span {
+            margin-top: 4px;
+            color: #aebfe0;
+            font-size: 11px;
+        }
+
+        .main {
+            min-width: 0;
+            margin-left: 250px;
+        }
+
+        .topbar {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 15px 36px;
+            border-bottom: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .breadcrumb {
+            margin-bottom: 5px;
+            color: #8995a9;
+            font-size: 11px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 21px;
+            letter-spacing: -.5px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-pill {
+            padding: 7px 10px;
+            border: 1px solid #dbe5f5;
+            border-radius: 20px;
+            color: #365a9c;
+            background: #f0f5ff;
+            font-size: 11px;
+            font-weight: 750;
+            text-transform: capitalize;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-btn {
+            padding: 9px 13px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #475467;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .logout-btn:hover {
+            color: var(--red);
+            border-color: #fecdca;
+            background: #fff7f6;
+        }
+
+        .content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 31px 36px 50px;
+        }
+
+        .welcome-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 27px;
+        }
+
+        .welcome-row h2 {
+            margin: 0 0 9px;
+            color: var(--navy);
+            font-size: 26px;
+            letter-spacing: -.8px;
+        }
+
+        .welcome-row p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .primary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 41px;
+            padding: 0 15px;
+            border: 1px solid var(--blue);
+            border-radius: 8px;
+            color: #fff;
+            background: var(--blue);
+            font-size: 12px;
+            font-weight: 750;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .primary-btn:hover {
+            background: var(--blue-dark);
+        }
+
+        .flash-messages {
+            display: grid;
+            gap: 9px;
+            margin-bottom: 22px;
+        }
+
+        .flash {
+            padding: 13px 16px;
+            border: 1px solid #fecdca;
+            border-radius: 9px;
+            color: var(--red);
+            background: #fff5f4;
+            line-height: 1.6;
+        }
+
+        .flash.success {
+            border-color: #abefc6;
+            color: var(--green);
+            background: #ecfdf3;
+        }
+
+        .flash.info {
+            border-color: #b2ddff;
+            color: #175cd3;
+            background: #eff8ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            min-width: 0;
+            padding: 21px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(16,43,92,.025);
+        }
+
+        .stat-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            color: var(--blue);
+            background: #edf3ff;
+            font-size: 17px;
+        }
+
+        .stat-number {
+            color: var(--navy);
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .stat-description {
+            margin-top: 6px;
+            color: #8a96a9;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .panel {
+            min-width: 0;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(16,43,92,.025);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 21px 23px;
+            border-bottom: 1px solid #edf1f7;
+        }
+
+        .panel-header h2 {
+            margin: 0 0 6px;
+            color: var(--navy);
+            font-size: 16px;
+        }
+
+        .panel-header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .panel-body {
+            padding: 22px 23px;
+        }
+
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-form input {
+            flex: 1 1 240px;
+            min-width: 0;
+            min-height: 43px;
+            padding: 0 13px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            color: var(--text);
+            background: #fff;
+        }
+
+        .search-form input:focus,
+        .field:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(36,87,214,.10);
+        }
+
+        .search-btn,
+        .clear-btn {
+            min-height: 42px;
+            padding: 0 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .search-btn {
+            border-color: var(--blue);
+            color: #fff;
+            background: var(--blue);
+        }
+
+        .clear-btn {
+            display: inline-flex;
+            align-items: center;
+            color: #475467;
+            background: #fff;
+        }
+
+        .upload-area {
+            padding: 25px;
+            border: 1px dashed #b8c9e8;
+            border-radius: 10px;
+            background: #f8faff;
+        }
+
+        .upload-heading {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            margin-bottom: 19px;
+        }
+
+        .upload-icon {
+            flex: 0 0 42px;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            color: var(--blue);
+            background: #e8efff;
+            font-size: 20px;
+        }
+
+        .upload-heading h3 {
+            margin: 2px 0 7px;
+            color: var(--navy);
+            font-size: 14px;
+        }
+
+        .upload-heading p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .upload-form input[type="file"] {
+            flex: 1 1 250px;
+            min-width: 0;
+            padding: 9px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            font-size: 12px;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 31px 0 17px;
+            scroll-margin-top: 20px;
+        }
+
+        .section-heading h2 {
+            margin: 0 0 6px;
+            color: var(--navy);
+            font-size: 19px;
+            letter-spacing: -.4px;
+        }
+
+        .section-heading p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .count-pill {
+            padding: 6px 10px;
+            border-radius: 20px;
+            color: #365a9c;
+            background: #eaf1ff;
+            font-size: 11px;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 17px;
+        }
+
+        .document-card {
+            min-width: 0;
+            padding: 21px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(16,43,92,.025);
+        }
+
+        .document-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            margin-bottom: 17px;
+        }
+
+        .file-icon {
+            flex: 0 0 45px;
+            width: 45px;
+            height: 49px;
+            display: grid;
+            place-items: center;
+            border: 1px solid #d9e5ff;
+            border-radius: 9px;
+            color: var(--blue);
+            background: #eff4ff;
+            font-size: 11px;
+            font-weight: 850;
+        }
+
+        .document-title {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .document-title h3 {
+            overflow-wrap: anywhere;
+            margin: 1px 0 7px;
+            color: var(--navy);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .document-title p {
+            overflow-wrap: anywhere;
+            margin: 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .document-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 17px;
+        }
+
+        .meta-pill {
+            max-width: 100%;
+            padding: 6px 9px;
+            border-radius: 6px;
+            color: #53647d;
+            background: #f1f4f9;
+            font-size: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        .document-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 14px;
+            border-top: 1px solid #edf1f7;
+        }
+
+        .action-link,
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            padding: 0 10px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: #475467;
+            background: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .action-link.primary {
+            border-color: #d7e3ff;
+            color: var(--blue);
+            background: #f2f6ff;
+        }
+
+        .action-btn.danger {
+            border-color: #fecdca;
+            color: var(--red);
+            background: #fff8f7;
+        }
+
+        .details {
+            margin-top: 19px;
+            border-top: 1px solid #edf1f7;
+        }
+
+        .details summary {
+            padding: 15px 0;
+            color: #344054;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 750;
+            list-style-position: inside;
+        }
+
+        .details-content {
+            padding: 0 0 7px;
+        }
+
+        .details-content h4 {
+            margin: 15px 0 11px;
+            color: var(--navy);
+            font-size: 12px;
+        }
+
+        .field-group {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .field-group label {
+            color: #475467;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .field {
+            width: 100%;
+            min-height: 38px;
+            padding: 9px 10px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            outline: none;
+            color: var(--text);
+            background: #fff;
+            font-size: 12px;
+        }
+
+        .inline-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 9px;
+            margin-bottom: 13px;
+        }
+
+        .inline-form .field-group {
+            flex: 1 1 145px;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .inline-form .action-btn {
+            min-height: 38px;
+        }
+
+        .permission-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 0;
+            border-top: 1px solid #edf1f7;
+        }
+
+        .permission-item p {
+            margin: 0;
+            color: #475467;
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .permission-item strong {
+            color: var(--navy);
+        }
+
+        .permission-item .action-btn {
+            min-height: 31px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            padding: 38px 20px;
+            border: 1px dashed #cbd7e8;
+            border-radius: 12px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 51px;
+            height: 51px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 15px;
+            border-radius: 14px;
+            color: var(--blue);
+            background: #edf3ff;
+            font-size: 23px;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 8px;
+            color: var(--navy);
+            font-size: 15px;
+        }
+
+        .empty-state p {
+            max-width: 400px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .footer {
+            padding: 22px 36px;
+            border-top: 1px solid var(--border);
+            color: #8995a9;
+            background: #fff;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        summary:focus-visible {
+            outline: 3px solid #91b4ff;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 1200px) {
+            .content {
+                padding-right: 25px;
+                padding-left: 25px;
+            }
+
+            .topbar {
+                padding-right: 25px;
+                padding-left: 25px;
+            }
+
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 850px) {
+            .sidebar {
+                position: static;
+                width: auto;
+                padding: 13px 18px;
+            }
+
+            .brand {
+                margin-bottom: 14px;
+            }
+
+            .nav-label,
+            .sidebar-bottom,
+            .security-card {
+                display: none;
+            }
+
+            .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .nav-link {
+                min-height: 36px;
+                padding: 0 10px;
+                font-size: 11px;
+            }
+
+            .nav-icon {
+                font-size: 14px;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                min-height: 68px;
+            }
+
+            .stats-grid {
+                gap: 11px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-number {
+                font-size: 25px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .topbar {
+                align-items: flex-start;
+                padding: 15px 17px;
+            }
+
+            .topbar h1 {
+                font-size: 18px;
+            }
+
+            .topbar-right {
+                align-items: flex-end;
+                flex-direction: column;
+                gap: 7px;
+            }
+
+            .content {
+                padding: 24px 15px 35px;
+            }
+
+            .welcome-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .welcome-row h2 {
+                font-size: 23px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 17px;
+            }
+
+            .stat-top {
+                margin-bottom: 10px;
+            }
+
+            .panel-header,
+            .panel-body {
+                padding: 17px;
+            }
+
+            .upload-area {
+                padding: 15px;
+            }
+
+            .search-form {
+                align-items: stretch;
+            }
+
+            .search-form input {
+                flex-basis: 100%;
+            }
+
+            .search-btn,
+            .clear-btn {
+                justify-content: center;
+                flex: 1;
+            }
+
+            .section-heading {
+                align-items: flex-start;
+            }
+
+            .document-card {
+                padding: 16px;
+            }
+
+            .footer {
+                padding: 19px 15px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="brand" href="{{ url_for('home') }}">
+                <span class="brand-icon" aria-hidden="true">&#128274;</span>
+                <span>TrustVault</span>
+            </a>
+
+            <p class="nav-label">Workspace</p>
+
+            <nav class="nav-links" aria-label="Main navigation">
+                <a class="nav-link active" href="{{ url_for('dashboard') }}">
+                    <span class="nav-icon" aria-hidden="true">&#9632;</span>
+                    Dashboard
+                </a>
+
+                <a class="nav-link" href="#my-documents">
+                    <span class="nav-icon" aria-hidden="true">&#128196;</span>
+                    My Documents
+                </a>
+
+                <a class="nav-link" href="#shared-documents">
+                    <span class="nav-icon" aria-hidden="true">&#128101;</span>
+                    Shared with Me
+                </a>
+
+                {% if current_user.role == "admin" %}
+                    <a class="nav-link" href="{{ url_for('admin_page') }}">
+                        <span class="nav-icon" aria-hidden="true">&#9881;</span>
+                        Admin Panel
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="security-card">
+                    <strong>&#128274; Your workspace</strong>
+                    <p>Use document permissions to control who can access the files you share.</p>
+                </div>
+
+                <div class="sidebar-user">
+                    <div class="avatar" aria-hidden="true">
+                        {{ (current_user.name or "U")[:1]|upper }}
+                    </div>
+                    <div class="user-details">
+                        <strong>{{ current_user.name }}</strong>
+                        <span>{{ current_user.role|title }} account</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div>
+                    <div class="breadcrumb">Workspace / Overview</div>
+                    <h1>Dashboard</h1>
+                </div>
+
+                <div class="topbar-right">
+                    <span class="role-pill">{{ current_user.role }} account</span>
+                    <form class="logout-form" method="POST" action="{{ url_for('logout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="logout-btn" type="submit">Log out &#8594;</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="content">
+                <div class="welcome-row">
+                    <div>
+                        <h2>Welcome back, {{ current_user.name }}!</h2>
+                        <p>Manage your documents and keep your workspace organized.</p>
+                    </div>
+
+                    <a class="primary-btn" href="#upload-document">
+                        <span aria-hidden="true">+</span> Upload document
+                    </a>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages" role="status" aria-live="polite">
+                            {% for category, message in messages %}
+                                <div class="flash {% if category == 'success' %}success{% elif category == 'info' %}info{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <section class="stats-grid" aria-label="Workspace overview">
+                    <article class="stat-card">
+                        <div class="stat-top">
+                            My Documents
+                            <span class="stat-icon" aria-hidden="true">&#128196;</span>
+                        </div>
+                        <div class="stat-number">{{ documents|length }}</div>
+                        <p class="stat-description">
+                            {% if search_query %}
+                                Matching documents for your search
+                            {% else %}
+                                Documents in your current view
+                            {% endif %}
+                        </p>
+                    </article>
+
+                    <article class="stat-card">
+                        <div class="stat-top">
+                            Shared with Me
+                            <span class="stat-icon" aria-hidden="true">&#128101;</span>
+                        </div>
+                        <div class="stat-number">{{ shared_documents|length }}</div>
+                        <p class="stat-description">Files other users have shared with you</p>
+                    </article>
+
+                    <article class="stat-card">
+                        <div class="stat-top">
+                            Account Role
+                            <span class="stat-icon" aria-hidden="true">&#128272;</span>
+                        </div>
+                        <div class="stat-number" style="font-size:23px">
+                            {{ current_user.role|title }}
+                        </div>
+                        <p class="stat-description">Your current workspace access level</p>
+                    </article>
+                </section>
+
+
+<section class="panel" id="upload-document" aria-labelledby="upload-heading">
+    <div class="panel-header">
+        <div>
+            <h2 id="upload-heading">Upload a document</h2>
+            <p>Add a file to your secure workspace.</p>
+        </div>
+    </div>
+
+    <div class="panel-body">
+        <div class="upload-area">
+            <div class="upload-heading">
+                <span class="upload-icon" aria-hidden="true">&#8679;</span>
+                <div>
+                    <h3>Choose a document to upload</h3>
+                    <p>
+                        Supported formats: PDF, PNG, JPG, JPEG, TXT and DOCX.
+                        Maximum file size: 10 MB.
+                    </p>
+                </div>
+            </div>
+
+            <form
+                class="upload-form"
+                method="POST"
+                action="{{ url_for('upload_document') }}"
+                enctype="multipart/form-data"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <input
+                    type="file"
+                    name="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.txt,.docx"
+                    aria-label="Choose a document"
+                    required
+                >
+
+                <button class="search-btn" type="submit">
+                    Upload document
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+                <section id="my-documents">
+                    <div class="section-heading">
+                        <div>
+                            <h2>My Documents</h2>
+                            <p>Files you own and manage.</p>
+                        </div>
+                        <span class="count-pill">{{ documents|length }} shown</span>
+                    </div>
+
+                    <div class="documents-grid">
+                        {% for document in documents %}
+                            <article class="document-card">
+                                <div class="document-top">
+                                    <div class="file-icon" aria-hidden="true">FILE</div>
+                                    <div class="document-title">
+                                        <h3>{{ document.title }}</h3>
+                                        <p>Category: {{ document.category }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="document-meta">
+                                    <span class="meta-pill">
+                                        {{ document.size_bytes }} bytes
+                                    </span>
+                                    <span class="meta-pill">
+                                        {{ document.permissions|length }} permission entries
+                                    </span>
+                                </div>
+
+                                <div class="document-actions">
+                                    <a class="action-link primary"
+                                    href="{{ url_for('download_document', document_id=document.id) }}">
+                                        &#8595; Download
+                                    </a>
+                                    <a class="action-link" href="#document-details-{{ document.id }}">
+                                        Manage
+                                    </a>
+                                </div>
+
+                                <details class="details" id="document-details-{{ document.id }}">
+                                    <summary>Edit, share and manage access</summary>
+
+                                    <div class="details-content">
+                                        <h4>Edit document details</h4>
+
+                                        <form method="POST"
+                                            action="{{ url_for('edit_document', document_id=document.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                            <div class="field-group">
+                                                <label for="title-{{ document.id }}">Title</label>
+                                                <input class="field"
+                                                    id="title-{{ document.id }}"
+                                                    type="text"
+                                                    name="title"
+                                                    value="{{ document.title }}"
+                                                    maxlength="200"
+                                                    required>
+                                            </div>
+
+                                            <div class="field-group">
+                                                <label for="category-{{ document.id }}">Category</label>
+                                                <input class="field"
+                                                       id="category-{{ document.id }}"
+                                                       type="text"
+                                                       name="category"
+                                                       value="{{ document.category }}"
+                                                       maxlength="100"
+                                                       required>
+                                            </div>
+
+                                            <button class="action-btn" type="submit">Save changes</button>
+                                        </form>
+
+                                        <h4>Share this document</h4>
+
+                                        <form method="POST"
+                                              action="{{ url_for('share_document', document_id=document.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                            <div class="field-group">
+                                                <label for="recipient-{{ document.id }}">Recipient email</label>
+                                                <input class="field"
+                                                       id="recipient-{{ document.id }}"
+                                                       type="email"
+                                                       name="email"
+                                                       maxlength="255"
+                                                       placeholder="recipient@example.com"
+                                                       required>
+                                            </div>
+
+                                            <div class="inline-form">
+                                                <div class="field-group">
+                                                    <label for="permission-{{ document.id }}">Permission</label>
+                                                    <select class="field"
+                                                            id="permission-{{ document.id }}"
+                                                            name="permission_type">
+                                                        <option value="read">Read</option>
+                                                        <option value="edit">Edit</option>
+                                                    </select>
+                                                </div>
+                                                <button class="action-btn" type="submit">Grant access</button>
+                                            </div>
+                                        </form>
+
+                                        <h4>Current permissions</h4>
+
+                                        {% for permission in document.permissions %}
+                                            <div class="permission-item">
+                                                <p>
+                                                    <strong>{{ permission.user.email }}</strong><br>
+                                                    {{ permission.permission_type|title }} access
+                                                </p>
+
+                                                <form method="POST"
+                                                    action="{{ url_for('revoke_document_access',
+                                                                        document_id=document.id,
+                                                                        user_id=permission.user_id) }}">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button class="action-btn" type="submit">Revoke access</button>
+                                                </form>
+                                            </div>
+                                        {% else %}
+                                            <p style="color:#667085;font-size:12px;line-height:1.7">
+                                                No users have been granted access to this document.
+                                            </p>
+                                        {% endfor %}
+
+                                        <h4>Delete document</h4>
+                                        <p style="margin-bottom:12px;color:#667085;font-size:12px;line-height:1.7">
+                                            Delete this document only if you are sure you no longer need it.
+                                        </p>
+
+                                        <form method="POST"
+                                            action="{{ url_for('delete_document', document_id=document.id) }}"
+                                            onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button class="action-btn danger" type="submit">Delete document</button>
+                                        </form>
+                                    </div>
+                                </details>
+                            </article>
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-icon" aria-hidden="true">&#128196;</div>
+                                <h3>
+                                    {% if search_query %}
+                                        No matching documents
+                                    {% else %}
+                                        Your workspace is ready
+                                    {% endif %}
+                                </h3>
+                                <p>
+                                    {% if search_query %}
+                                        Try a different search term, or clear your search to see your documents.
+                                    {% else %}
+                                        You haven't uploaded any documents yet. Use the upload section above to add your first file.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section id="shared-documents">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Shared with Me</h2>
+                            <p>Documents other users have shared with your account.</p>
+                        </div>
+                        <span class="count-pill">{{ shared_documents|length }} shared</span>
+                    </div>
+
+                    <div class="documents-grid">
+                        {% for document, permission_type in shared_documents %}
+                            <article class="document-card">
+                                <div class="document-top">
+                                    <div class="file-icon" aria-hidden="true">FILE</div>
+                                    <div class="document-title">
+                                        <h3>{{ document.title }}</h3>
+                                        <p>Category: {{ document.category }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="document-meta">
+                                    <span class="meta-pill">
+                                        {{ permission_type|title }} permission
+                                    </span>
+                                    <span class="meta-pill">
+                                        {{ document.size_bytes }} bytes
+                                    </span>
+                                </div>
+
+                                <div class="document-actions">
+                                    <a class="action-link primary"
+                                    href="{{ url_for('download_document', document_id=document.id) }}">
+                                        &#8595; Download
+                                    </a>
+                                </div>
+                            </article>
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-icon" aria-hidden="true">&#128101;</div>
+                                <h3>No shared documents yet</h3>
+                                <p>When another user shares a document with you, it will appear here.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </main>
+
+            <footer class="footer">
+                TrustVault -+ Secure document management and sharing
+            </footer>
+        </div>
+    </div>
+</body>
+</html>
