@@ -135,7 +135,7 @@ Add an entry after each significant AI-assisted development or security-testing 
 - **Related implementation commit:** https://github.com/lahari-kalari/TrustVault/commit/05a2272
 
 
-### 2026-10-22 — Unauthorized edit and delete security tests
+## Entry 8 — 2026-10-22: Unauthorized edit and delete security tests
 
 - **Request:** Add automated tests proving that a viewer cannot edit or delete another user's document.
 - **Tool output:** Added `test_viewer_cannot_edit_another_users_document` and `test_viewer_cannot_delete_another_users_document` in `test_app.py`.
@@ -152,5 +152,14 @@ Add an entry after each significant AI-assisted development or security-testing 
 - **What was done instead:** Added a failure audit event to the error handler and extended the test to verify that no document is created and that the audit event contains the size-limit details.
 - **Verification:** The targeted test passed, and the full test suite passed with 20 tests.
 - **Commit:** https://github.com/lahari-kalari/TrustVault/commit/a54bf09
+
+## Entry 10 — 2026-10-22: Threat-model review and security test coverage
+
+- **What was requested:** Review and update `THREATS.md` so that its threat scenarios, implemented mitigations, automated tests, and residual risks match the current TrustVault implementation.
+- **What the tool produced:** An updated threat model documenting security controls, their test coverage, and remaining limitations.
+- **What could be wrong:** Documentation could overstate security protections, describe outdated test results, or claim that a control is verified when it has not been tested.
+- **What was done instead:** Review the threat-model changes, document implemented controls and remaining risks, and verify the changes using Git and the test suite.
+- **Verification:** `git diff --check` passed, and the full test suite passed with 20 tests.
+- **Commit:** https://github.com/lahari-kalari/TrustVault/commit/e853967
 
 
