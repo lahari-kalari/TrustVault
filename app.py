@@ -67,9 +67,24 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "sqlite:///" + os.path.join(app.instance_path, "trustvault.db")
-)
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url:
+    # Support PostgreSQL URLs supplied by deployment platforms.
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace(
+            "postgres://",
+            "postgresql://",
+            1,
+        )
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+else:
+    # Keep the existing SQLite database for local development.
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///" + os.path.join(app.instance_path, "trustvault.db")
+    )
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 app.config["SECRET_KEY"] = os.environ.get(
