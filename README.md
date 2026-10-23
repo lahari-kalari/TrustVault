@@ -1,184 +1,111 @@
-\# TrustVault — Secure Document Management System
+# TrustVault - Secure Document Management System
 
+TrustVault is a Flask-based document management application that provides authentication, role-based access control, private file uploads, document sharing, access revocation, and audit logging.
 
+## Features
 
-TrustVault is a web-based document management application built with Python and Flask. It provides user authentication, role-based access control, document uploading, document search, and secure document sharing.
+- **Authentication:** User registration, login, logout, and password hashing.
+- **Role-based access control:** Admin, owner, and viewer roles.
+- **Private document storage:** Supported file uploads with a 10 MB size limit and file validation.
+- **Document management:** Search, download, edit, and delete operations subject to authorization checks.
+- **Document sharing:** Grant and revoke document permissions.
+- **Security controls:** CSRF protection, login rate limiting, and server-side authorization.
+- **Audit trail:** Record relevant actions, denied requests, and upload failures.
+- **Automated tests:** Regression tests for permissions, uploads, CSRF, rate limiting, and audit behavior.
 
+## Technology Stack
 
+- Python
+- Flask and Flask-Login
+- Flask-WTF
+- Flask-SQLAlchemy and SQLAlchemy
+- SQLite for local development
+- PostgreSQL driver (`psycopg2-binary`)
+- Gunicorn
+- Pytest
 
-\## Features
+## Local Installation
 
-
-
-\- \*\*User Authentication:\*\* User registration, login, and logout.
-
-\- \*\*Role-Based Access Control:\*\* Access permissions based on user roles.
-
-\- \*\*Document Upload:\*\* Upload supported documents such as PDF, PNG, JPG, JPEG, TXT, and DOCX.
-
-\- \*\*Document Search:\*\* Find documents using the search functionality.
-
-\- \*\*Document Sharing:\*\* Share documents with authorized users.
-
-\- \*\*Access Revocation:\*\* Revoke previously granted document access.
-
-\- \*\*Security Protections:\*\* Password hashing and CSRF protection.
-
-
-
-\## Technologies Used
-
-
-
-\- Python
-
-\- Flask
-
-\- Flask-Login
-
-\- Flask-WTF
-
-\- SQLAlchemy
-
-\- SQLite
-
-\- HTML and CSS
-
-\- Git and GitHub
-
-
-
-\## Installation and Setup
-
-
-
-\### 1. Clone the repository
-
-
+### 1. Clone the repository
 
 ```bash
-
 git clone https://github.com/lahari-kalari/TrustVault.git
-
 cd TrustVault
-
 ```
 
+### 2. Create and activate a virtual environment
 
-
-\### 2. Create a virtual environment
-
-
-
-```bash
-
-python -m venv .venv
-
-```
-
-
-
-\### 3. Activate the virtual environment
-
-
-
-\*\*Windows PowerShell:\*\*
-
-
+Windows PowerShell:
 
 ```powershell
-
-.\\.venv\\Scripts\\Activate.ps1
-
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
+### 3. Install dependencies
 
-
-\### 4. Install dependencies
-
-
-
-If a `requirements.txt` file is available:
-
-
-
-```bash
-
-pip install -r requirements.txt
-
+```powershell
+python -m pip install -r requirements.txt
 ```
 
+### 4. Configure the secret key
 
+Generate a random secret key:
 
-\### 5. Configure environment variables
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"
+```
 
+Set it for the current PowerShell session, replacing the placeholder with the generated value:
 
+```powershell
+$env:TRUSTVAULT_SECRET_KEY = "replace-with-your-generated-secret"
+```
 
-Create a local `.env` file or configure the environment variables required by the application. Use a strong, unique secret key. Never commit credentials, database files, or private uploads to GitHub.
+Never commit real secrets, database files, or private uploads to Git.
 
+### 5. Run the application
 
-
-\### 6. Run the application
-
-
-
-Follow the application's configuration requirements, then run its Flask entry point. For example, if the entry point is `app.py`:
-
-
-
-```bash
-
+```powershell
 python app.py
-
 ```
 
+Open the local URL printed by Flask in your browser.
 
+## Run the Tests
 
-Open the local address shown in the terminal in your browser.
+From the project directory, run:
 
+```powershell
+python -m pytest .\test_app.py -v
+```
 
+The latest recorded run passed all 20 tests. Run the suite again after making changes to verify the current result.
 
-\## Security Notes
+## Production Deployment Notes
 
+TrustVault requires additional configuration before it is ready for a public production deployment.
 
+- Set `TRUSTVAULT_SECRET_KEY` through the hosting platform's secret/environment-variable settings.
+- Configure a persistent production database. PostgreSQL is a suitable option; database URL support must be implemented and tested before using it.
+- Configure persistent private file storage. The current upload directory is inside Flask's instance directory, which may not persist on ephemeral hosting platforms.
+- Use Gunicorn or another supported production WSGI server instead of Flask's development server.
+- Configure HTTPS, secure cookie settings, backups, and appropriate access to operational logs.
+- Review rate-limiting storage: the current limiter uses in-memory storage, which is not shared across multiple application workers.
+- Run database migrations when changing existing schemas. `db.create_all()` creates missing tables but does not migrate existing ones.
+- Do not expose private uploads through a public static directory.
 
-\- Passwords should be stored using secure password hashing.
+**Deployment status:** The application has passing automated security regression tests, but production deployment is not verified by those tests. Confirm database configuration, persistent storage, production security settings, and hosting behavior before publishing a live instance.
 
-\- Access to documents should be checked on the server for every request.
+## Security Documentation
 
-\- Secret keys and credentials must remain private.
+- `API.md` â€” API and access-control documentation.
+- `THREATS.md` â€” Threat model, mitigations, and residual risks.
+- `PROMPTS.md` â€” AI-assisted development and verification log.
 
-\- Local databases, uploaded documents, and virtual environments should not be committed to Git.
+## Author
 
-
-
-\## Future Enhancements
-
-
-
-\- Automated testing and continuous integration.
-
-\- Improved document previews.
-
-\- Audit logs for document access and sharing.
-
-\- Enhanced administrative dashboard.
-
-
-
-\## Author
-
-
-
-\*\*K. Lahari\*\*
-
-
-
-Final-Year Computer Science Student (AI \& ML)
-
-
+**K. Lahari**
+Final-Year Computer Science Student (AI & ML)
 
 GitHub: https://github.com/lahari-kalari
-
-
-
