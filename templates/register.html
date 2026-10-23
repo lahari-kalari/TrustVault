@@ -3,57 +3,638 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#102b5c">
+
     <title>Create Account | TrustVault</title>
+
+    <style>
+        :root {
+            --navy: #102b5c;
+            --blue: #2457d6;
+            --blue-dark: #1946b8;
+            --text: #172b4d;
+            --muted: #667085;
+            --border: #dce4f0;
+            --surface: #f4f7fc;
+            --danger: #b42318;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: #fff;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .navbar {
+            min-height: 76px;
+            padding: 0 7%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid #edf0f6;
+            background: #fff;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: var(--navy);
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -.7px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: var(--blue);
+            border-radius: 11px;
+            font-size: 21px;
+        }
+
+        .nav-right {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .nav-right a {
+            margin-left: 7px;
+            color: var(--blue);
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .page {
+            min-height: calc(100vh - 76px);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .intro-panel {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 65px 11%;
+            color: #fff;
+            background:
+                radial-gradient(circle at 90% 10%,
+                    rgba(96,165,250,.27), transparent 32%),
+                linear-gradient(145deg, #102b5c, #1748a0 68%, #2864d9);
+        }
+
+        .intro-panel::before,
+        .intro-panel::after {
+            content: "";
+            position: absolute;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .intro-panel::before {
+            width: 390px;
+            height: 390px;
+            right: -180px;
+            top: -100px;
+        }
+
+        .intro-panel::after {
+            width: 500px;
+            height: 500px;
+            right: -230px;
+            top: -155px;
+        }
+
+        .intro-content {
+            position: relative;
+            z-index: 1;
+            max-width: 490px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            padding: 9px 13px;
+            border: 1px solid rgba(255,255,255,.24);
+            border-radius: 30px;
+            color: #e0ebff;
+            background: rgba(255,255,255,.08);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .intro-panel h1 {
+            margin-bottom: 22px;
+            font-size: clamp(36px, 4vw, 54px);
+            line-height: 1.13;
+            letter-spacing: -1.7px;
+        }
+
+        .intro-panel h1 span {
+            color: #9fc5ff;
+        }
+
+        .description {
+            max-width: 420px;
+            color: #d8e5ff;
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .benefits {
+            display: grid;
+            gap: 19px;
+            margin-top: 38px;
+        }
+
+        .benefit {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            color: #edf4ff;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .benefit-icon {
+            flex: 0 0 35px;
+            width: 35px;
+            height: 35px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: rgba(255,255,255,.13);
+            font-size: 16px;
+        }
+
+        .benefit strong {
+            display: block;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .form-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 45px 8%;
+            background: #fff;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .mobile-brand {
+            display: none;
+        }
+
+        .form-heading {
+            margin-bottom: 26px;
+        }
+
+        .small-label {
+            margin-bottom: 10px;
+            color: var(--blue);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .form-heading h2 {
+            margin-bottom: 10px;
+            color: var(--navy);
+            font-size: 33px;
+            letter-spacing: -1px;
+        }
+
+        .form-heading p:last-child {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .messages {
+            margin-bottom: 19px;
+        }
+
+        .message {
+            margin-bottom: 8px;
+            padding: 12px 14px;
+            border: 1px solid #fecdca;
+            border-radius: 9px;
+            color: var(--danger);
+            background: #fff5f4;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .success-message {
+            margin-bottom: 8px;
+            padding: 12px 14px;
+            border: 1px solid #abefc6;
+            border-radius: 9px;
+            color: #067647;
+            background: #ecfdf3;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #344054;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .form-group input {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            outline: none;
+            color: var(--text);
+            background: #fff;
+            font: inherit;
+            font-size: 14px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-group input::placeholder {
+            color: #98a2b3;
+        }
+
+        .form-group input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 4px rgba(36,87,214,.11);
+        }
+
+        .field-error {
+            display: block;
+            margin-top: 6px;
+            color: var(--danger);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .submit-btn {
+            width: 100%;
+            min-height: 51px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            margin-top: 7px;
+            border: none;
+            border-radius: 9px;
+            color: #fff;
+            background: var(--blue);
+            box-shadow: 0 5px 12px rgba(36,87,214,.17);
+            cursor: pointer;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 750;
+            transition: background .2s, transform .2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid #91b4ff;
+            outline-offset: 3px;
+        }
+
+        .login-box {
+            margin-top: 20px;
+            padding: 16px;
+            border: 1px solid #e4eaf4;
+            border-radius: 10px;
+            color: var(--muted);
+            background: var(--surface);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .login-box a {
+            color: var(--blue);
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .login-box a:hover,
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #667085;
+            text-align: center;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 22px;
+            color: #7b879b;
+            font-size: 12px;
+        }
+
+        .footer {
+            padding: 19px 7%;
+            border-top: 1px solid #edf0f6;
+            color: #8490a4;
+            background: #fff;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 850px) {
+            .navbar {
+                min-height: 68px;
+                padding: 0 5%;
+            }
+
+            .page {
+                min-height: calc(100vh - 68px);
+                grid-template-columns: 1fr;
+            }
+
+            .intro-panel {
+                display: none;
+            }
+
+            .form-panel {
+                padding: 38px 24px 45px;
+                background: linear-gradient(180deg, #f5f8ff, #fff 240px);
+            }
+
+            .register-card {
+                max-width: 460px;
+            }
+
+            .mobile-brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 28px;
+                color: var(--navy);
+                font-size: 21px;
+                font-weight: 800;
+            }
+
+            .mobile-brand .brand-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 19px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0 18px;
+            }
+
+            .brand {
+                font-size: 20px;
+            }
+
+            .nav-right {
+                font-size: 12px;
+            }
+
+            .form-panel {
+                padding: 30px 20px 38px;
+            }
+
+            .form-heading h2 {
+                font-size: 29px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Create a TrustVault account</h1>
+    <header class="navbar">
+        <a class="brand" href="{{ url_for('home') }}" aria-label="TrustVault home">
+            <span class="brand-icon" aria-hidden="true">&#128274;</span>
+            <span>TrustVault</span>
+        </a>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <p role="status">{{ message }}</p>
-      {% endfor %}
-    {% endwith %}
+        <div class="nav-right">
+            Already registered?
+            <a href="{{ url_for('login') }}">Sign in</a>
+        </div>
+    </header>
 
-    <form method="POST">
-        {{ form.hidden_tag() }}
+    <main class="page">
+        <section class="intro-panel" aria-label="TrustVault benefits">
+            <div class="intro-content">
+                <div class="eyebrow">
+                    <span aria-hidden="true">&#10003;</span>
+                    Your secure document workspace
+                </div>
 
-        <p>
-            {{ form.name.label }}<br>
-            {{ form.name(autocomplete="name") }}
-            {% for error in form.name.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </p>
+                <h1>Bring your files<br><span>under control.</span></h1>
 
-        <p>
-            {{ form.email.label }}<br>
-            {{ form.email(autocomplete="email") }}
-            {% for error in form.email.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </p>
+                <p class="description">
+                    Create your account to organize important documents,
+                    share files with authorized users, and manage access
+                    in one convenient workspace.
+                </p>
 
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(autocomplete="new-password") }}
-            {% for error in form.password.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </p>
+                <div class="benefits">
+                    <div class="benefit">
+                        <span class="benefit-icon" aria-hidden="true">&#128274;</span>
+                        <div>
+                            <strong>Access protection</strong>
+                            Sign in to manage your authorized documents.
+                        </div>
+                    </div>
 
-        <p>
-            {{ form.confirm_password.label }}<br>
-            {{ form.confirm_password(autocomplete="new-password") }}
-            {% for error in form.confirm_password.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </p>
+                    <div class="benefit">
+                        <span class="benefit-icon" aria-hidden="true">&#128101;</span>
+                        <div>
+                            <strong>Share with confidence</strong>
+                            Control which users can access shared files.
+                        </div>
+                    </div>
 
-        {{ form.submit() }}
-    </form>
+                    <div class="benefit">
+                        <span class="benefit-icon" aria-hidden="true">&#128221;</span>
+                        <div>
+                            <strong>Organized workspace</strong>
+                            Keep document management clear and convenient.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <p>Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
-    <p><a href="{{ url_for('home') }}">Back to homepage</a></p>
+        <section class="form-panel" aria-labelledby="register-heading">
+            <div class="register-card">
+                <div class="mobile-brand">
+                    <span class="brand-icon" aria-hidden="true">&#128274;</span>
+                    <span>TrustVault</span>
+                </div>
+
+                <div class="form-heading">
+                    <p class="small-label">Get started</p>
+                    <h2 id="register-heading">Create your account</h2>
+                    <p>Fill in your details to get started with TrustVault.</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="messages" role="status" aria-live="polite">
+                            {% for category, message in messages %}
+                                <div class="{% if category == 'success' %}success-message{% else %}message{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('register') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        {{ form.name.label }}
+                        {{ form.name(
+                            id="name",
+                            placeholder="Enter your full name",
+                            autocomplete="name",
+                            required=true
+                        ) }}
+
+                        {% for error in form.name.errors %}
+                            <span class="field-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.email.label }}
+                        {{ form.email(
+                            id="email",
+                            placeholder="you@example.com",
+                            autocomplete="email",
+                            required=true
+                        ) }}
+
+                        {% for error in form.email.errors %}
+                            <span class="field-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.password.label }}
+                        {{ form.password(
+                            id="password",
+                            placeholder="Create a password",
+                            autocomplete="new-password",
+                            required=true
+                        ) }}
+
+                        {% for error in form.password.errors %}
+                            <span class="field-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.confirm_password.label }}
+                        {{ form.confirm_password(
+                            id="confirm_password",
+                            placeholder="Enter your password again",
+                            autocomplete="new-password",
+                            required=true
+                        ) }}
+
+                        {% for error in form.confirm_password.errors %}
+                            <span class="field-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    {{ form.submit(
+                        class="submit-btn",
+                        value="Create account"
+                    ) }}
+                </form>
+
+                <div class="login-box">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}">Sign in instead</a>
+                </div>
+
+                <a class="back-link" href="{{ url_for('home') }}">
+                    &#8592; Back to homepage
+                </a>
+
+                <div class="security-note">
+                    <span aria-hidden="true">&#128274;</span>
+                    Secure account registration · TrustVault
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        TrustVault · Secure document management and sharing
+    </footer>
 </body>
 </html>

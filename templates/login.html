@@ -1,243 +1,596 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#102b5c">
 
-    <title>TrustVault | Login</title>
+    <title>Sign In | TrustVault</title>
 
     <style>
+        :root {
+            --navy: #102b5c;
+            --blue: #2457d6;
+            --blue-dark: #1946b8;
+            --text: #172b4d;
+            --muted: #667085;
+            --border: #dce4f0;
+            --surface: #f4f7fc;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
         }
 
         body {
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #101828, #23395d);
-            padding: 20px;
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: #fff;
         }
 
-        .login-container {
-            width: 100%;
-            max-width: 420px;
-            background: #ffffff;
-            padding: 38px;
-            border-radius: 16px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        a {
+            color: inherit;
         }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 14px;
+        .navbar {
+            height: 76px;
+            padding: 0 7%;
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: #e8efff;
-            color: #2457d6;
-            border-radius: 16px;
-            font-size: 30px;
+            justify-content: space-between;
+            border-bottom: 1px solid #edf0f6;
+            background: #fff;
         }
 
-        .logo h1 {
-            color: #172b4d;
-            font-size: 28px;
-            margin-bottom: 8px;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: var(--navy);
+            font-size: 23px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: -0.7px;
         }
 
-        .logo p {
-            color: #667085;
+        .brand-icon {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: var(--blue);
+            border-radius: 11px;
+            font-size: 21px;
+        }
+
+        .nav-right {
+            color: var(--muted);
             font-size: 14px;
+        }
+
+        .nav-right a {
+            margin-left: 8px;
+            color: var(--blue);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .page {
+            min-height: calc(100vh - 76px);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .intro-panel {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 70px 11%;
+            color: #fff;
+            background:
+                radial-gradient(circle at 90% 10%,
+                    rgba(96, 165, 250, .27), transparent 32%),
+                linear-gradient(145deg, #102b5c, #1748a0 68%, #2864d9);
+        }
+
+        .intro-panel::before,
+        .intro-panel::after {
+            content: "";
+            position: absolute;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .intro-panel::before {
+            width: 390px;
+            height: 390px;
+            right: -180px;
+            top: -100px;
+        }
+
+        .intro-panel::after {
+            width: 500px;
+            height: 500px;
+            right: -230px;
+            top: -155px;
+        }
+
+        .intro-content {
+            position: relative;
+            z-index: 1;
+            max-width: 490px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            padding: 9px 13px;
+            border: 1px solid rgba(255,255,255,.24);
+            border-radius: 30px;
+            color: #e0ebff;
+            background: rgba(255,255,255,.08);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .intro-panel h1 {
+            margin-bottom: 22px;
+            font-size: clamp(36px, 4vw, 55px);
+            line-height: 1.12;
+            letter-spacing: -1.7px;
+        }
+
+        .intro-panel h1 span {
+            color: #9fc5ff;
+        }
+
+        .intro-panel .description {
+            max-width: 420px;
+            color: #d8e5ff;
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .benefits {
+            display: grid;
+            gap: 19px;
+            margin-top: 42px;
+        }
+
+        .benefit {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            color: #edf4ff;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .benefit-icon {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: rgba(255,255,255,.13);
+            font-size: 16px;
+        }
+
+        .benefit strong {
+            display: block;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .form-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 55px 8%;
+            background: #fff;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 430px;
+        }
+
+        .mobile-brand {
+            display: none;
+        }
+
+        .form-heading {
+            margin-bottom: 32px;
+        }
+
+        .form-heading .small-label {
+            margin-bottom: 12px;
+            color: var(--blue);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .form-heading h2 {
+            margin-bottom: 11px;
+            color: var(--navy);
+            font-size: 34px;
+            letter-spacing: -1px;
+        }
+
+        .form-heading p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .messages {
+            margin-bottom: 22px;
+        }
+
+        .message,
+        .success-message {
+            margin-bottom: 9px;
+            padding: 13px 15px;
+            border-radius: 9px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message {
+            border: 1px solid #fecdca;
+            color: #b42318;
+            background: #fff5f4;
+        }
+
+        .success-message {
+            border: 1px solid #abefc6;
+            color: #067647;
+            background: #ecfdf3;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 9px;
             color: #344054;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 700;
         }
 
-        input {
-            display: block;
+        .form-group input {
             width: 100%;
-            padding: 13px 14px;
-            border: 1px solid #d0d5dd;
-            border-radius: 8px;
-            font-size: 15px;
+            min-height: 51px;
+            padding: 13px 15px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
             outline: none;
-            background: #ffffff;
+            color: var(--text);
+            background: #fff;
+            font: inherit;
+            font-size: 14px;
+            transition: border-color .2s, box-shadow .2s;
         }
 
-        input:focus {
-            border-color: #2457d6;
-            box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.12);
+        .form-group input::placeholder {
+            color: #98a2b3;
+        }
+
+        .form-group input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 4px rgba(36,87,214,.11);
+        }
+
+        .field-error {
+            margin-top: 7px;
+            color: #b42318;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         .login-btn {
             width: 100%;
-            padding: 14px;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 7px;
             border: none;
-            border-radius: 8px;
-            background: #2457d6;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 9px;
+            color: #fff;
+            background: var(--blue);
+            box-shadow: 0 5px 12px rgba(36,87,214,.17);
             cursor: pointer;
-            transition: background 0.2s;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 750;
+            transition: background .2s, transform .2s;
         }
 
         .login-btn:hover {
-            background: #1946b8;
+            background: var(--blue-dark);
+            transform: translateY(-1px);
         }
 
-        .messages {
-            margin-bottom: 18px;
+        .login-btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid #91b4ff;
+            outline-offset: 3px;
         }
 
-        .message {
-            padding: 11px;
-            margin-bottom: 8px;
-            border-radius: 7px;
-            background: #fff0f0;
-            color: #b42318;
-            font-size: 14px;
-        }
-
-        .success-message {
-            padding: 11px;
-            margin-bottom: 8px;
-            border-radius: 7px;
-            background: #ecfdf3;
-            color: #027a48;
-            font-size: 14px;
-        }
-
-        .field-error {
-            margin-top: 6px;
-            color: #b42318;
-            font-size: 13px;
-        }
-
-        .register-link {
+        .register-box {
+            margin-top: 28px;
+            padding: 18px;
+            border: 1px solid #e4eaf4;
+            border-radius: 10px;
+            color: var(--muted);
+            background: var(--surface);
             text-align: center;
-            margin-top: 22px;
-            color: #667085;
             font-size: 14px;
+            line-height: 1.8;
         }
 
-        .register-link a {
-            color: #2457d6;
+        .register-box a {
+            color: var(--blue);
+            font-weight: 750;
             text-decoration: none;
-            font-weight: bold;
         }
 
-        .register-link a:hover {
+        .register-box a:hover {
             text-decoration: underline;
         }
 
         .security-note {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
             margin-top: 25px;
-            color: #98a2b3;
+            color: #7b879b;
             font-size: 12px;
         }
 
+        .footer {
+            padding: 20px 7%;
+            border-top: 1px solid #edf0f6;
+            color: #8490a4;
+            background: #fff;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 850px) {
+            .navbar {
+                height: 68px;
+                padding: 0 5%;
+            }
+
+            .page {
+                min-height: calc(100vh - 68px);
+                grid-template-columns: 1fr;
+            }
+
+            .intro-panel {
+                display: none;
+            }
+
+            .form-panel {
+                padding: 48px 24px 55px;
+                background: linear-gradient(180deg, #f5f8ff, #fff 240px);
+            }
+
+            .mobile-brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 38px;
+                color: var(--navy);
+                font-size: 21px;
+                font-weight: 800;
+            }
+
+            .mobile-brand .brand-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 19px;
+            }
+
+            .login-card {
+                max-width: 460px;
+            }
+        }
+
         @media (max-width: 480px) {
-            .login-container {
-                padding: 26px 22px;
+            .navbar {
+                padding: 0 18px;
+            }
+
+            .brand {
+                font-size: 20px;
+            }
+
+            .nav-right {
+                font-size: 12px;
+            }
+
+            .form-panel {
+                padding: 34px 21px 42px;
+            }
+
+            .form-heading h2 {
+                font-size: 30px;
+            }
+
+            .mobile-brand {
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
             }
         }
     </style>
 </head>
 
 <body>
-    <main class="login-container">
+    <header class="navbar">
+        <a class="brand" href="{{ url_for('home') }}" aria-label="TrustVault home">
+            <span class="brand-icon" aria-hidden="true">&#128274;</span>
+            <span>TrustVault</span>
+        </a>
 
-        <div class="logo">
-            <div class="logo-icon" aria-hidden="true">&#128274;</div>
-            <h1>TrustVault</h1>
-            <p>Secure document access starts here.</p>
-        </div>
-
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="messages" role="status" aria-live="polite">
-                    {% for category, message in messages %}
-                        <div class="{% if category == 'success' %}success-message{% else %}message{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        <!-- Login form -->
-        <form method="POST" action="{{ url_for('login') }}">
-
-            {{ form.hidden_tag() }}
-
-            <div class="form-group">
-                <label for="email">Email address</label>
-
-                {{ form.email(
-                    id="email",
-                    placeholder="Enter your email",
-                    autocomplete="username",
-                    required=true
-                ) }}
-
-                {% for error in form.email.errors %}
-                    <p class="field-error">{{ error }}</p>
-                {% endfor %}
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-
-                {{ form.password(
-                    id="password",
-                    placeholder="Enter your password",
-                    autocomplete="current-password",
-                    required=true
-                ) }}
-
-                {% for error in form.password.errors %}
-                    <p class="field-error">{{ error }}</p>
-                {% endfor %}
-            </div>
-
-            <button type="submit" class="login-btn">
-                Sign In
-            </button>
-
-        </form>
-
-        <div class="register-link">
-            Don't have an account?
+        <div class="nav-right">
+            New here?
             <a href="{{ url_for('register') }}">Create account</a>
         </div>
+    </header>
 
-        <div class="security-note">
-            Protected document access · TrustVault
-        </div>
+    <main class="page">
+        <section class="intro-panel" aria-label="TrustVault benefits">
+            <div class="intro-content">
+                <div class="eyebrow">
+                    <span aria-hidden="true">&#10003;</span>
+                    Your secure document workspace
+                </div>
 
+                <h1>Your documents.<br><span>Your control.</span></h1>
+
+                <p class="description">
+                    Keep your important files organized, share documents
+                    with the right people, and manage access from one
+                    secure workspace.
+                </p>
+
+                <div class="benefits">
+                    <div class="benefit">
+                        <span class="benefit-icon" aria-hidden="true">&#128274;</span>
+                        <div>
+                            <strong>Protected access</strong>
+                            Sign in to access your authorized documents.
+                        </div>
+                    </div>
+
+                    <div class="benefit">
+                        <span class="benefit-icon" aria-hidden="true">&#128101;</span>
+                        <div>
+                            <strong>Controlled sharing</strong>
+                            Share files with specific users and manage permissions.
+                        </div>
+                    </div>
+
+                    <div class="benefit">
+                        <span class="benefit-icon" aria-hidden="true">&#128221;</span>
+                        <div>
+                            <strong>Accountable activity</strong>
+                            Keep document access and actions auditable.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-panel" aria-labelledby="login-heading">
+            <div class="login-card">
+                <div class="mobile-brand">
+                    <span class="brand-icon" aria-hidden="true">&#128274;</span>
+                    <span>TrustVault</span>
+                </div>
+
+                <div class="form-heading">
+                    <p class="small-label">Welcome back</p>
+                    <h2 id="login-heading">Sign in to your account</h2>
+                    <p>Enter your details below to continue to your workspace.</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="messages" role="status" aria-live="polite">
+                            {% for category, message in messages %}
+                                <div class="{% if category == 'success' %}success-message{% else %}message{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        {{ form.email(
+                            id="email",
+                            placeholder="you@example.com",
+                            autocomplete="username",
+                            required=true
+                        ) }}
+
+                        {% for error in form.email.errors %}
+                            <p class="field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        {{ form.password(
+                            id="password",
+                            placeholder="Enter your password",
+                            autocomplete="current-password",
+                            required=true
+                        ) }}
+
+                        {% for error in form.password.errors %}
+                            <p class="field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="login-btn">
+                        Sign in
+                        <span aria-hidden="true">&#8594;</span>
+                    </button>
+                </form>
+
+                <div class="register-box">
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}">Create a free account</a>
+                </div>
+
+                <div class="security-note">
+                    <span aria-hidden="true">&#128274;</span>
+                    Secure sign-in · TrustVault
+                </div>
+            </div>
+        </section>
     </main>
+
+    <footer class="footer">
+        TrustVault · Secure document management and sharing
+    </footer>
 </body>
 </html>
+```

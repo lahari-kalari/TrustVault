@@ -1,21 +1,596 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin | TrustVault</title>
-</head>
-<body>
-    <h1>TrustVault Admin</h1>
-    <p>Welcome, {{ current_user.name }}.</p>
-    <p>Your administrator role has been verified.</p>
-    <p>The full audit activity view will be added in a later step.</p>
-    <p><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+    <meta name="theme-color" content="#102b5c">
+    <title>Admin Panel | TrustVault</title>
 
-    <form method="POST" action="{{ url_for('logout') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit">Log out</button>
-    </form>
+    <style>
+        :root {
+            --navy: #102b5c;
+            --blue: #2457d6;
+            --text: #172b4d;
+            --muted: #667085;
+            --border: #e3eaf4;
+            --surface: #f6f8fc;
+            --green: #067647;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: var(--text);
+            background: var(--surface);
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            padding: 25px 17px;
+            color: #dce7ff;
+            background: var(--navy);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin: 0 10px 42px;
+            color: #fff;
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -.7px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 39px;
+            height: 39px;
+            border-radius: 11px;
+            color: var(--navy);
+            background: #fff;
+            font-size: 20px;
+        }
+
+        .nav-label {
+            margin: 0 12px 12px;
+            color: #92a8d4;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 45px;
+            padding: 0 13px;
+            margin-bottom: 7px;
+            border-radius: 9px;
+            color: #dce7ff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #fff;
+            background: #23427d;
+        }
+
+        .nav-icon {
+            width: 23px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+        }
+
+        .security-card {
+            padding: 15px;
+            margin: 22px 3px;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 11px;
+            background: rgba(255,255,255,.06);
+        }
+
+        .security-card strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .security-card p {
+            margin: 0;
+            color: #c1d1ef;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .account {
+            padding: 16px 8px 0;
+            border-top: 1px solid rgba(255,255,255,.14);
+        }
+
+        .account strong,
+        .account span {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .account strong {
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .account span {
+            margin-top: 5px;
+            color: #aebfe0;
+            font-size: 11px;
+        }
+
+        .main {
+            min-height: 100vh;
+            margin-left: 250px;
+        }
+
+        .topbar {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 15px 36px;
+            border-bottom: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .breadcrumb {
+            margin-bottom: 5px;
+            color: #8995a9;
+            font-size: 11px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 21px;
+            letter-spacing: -.5px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 39px;
+            padding: 0 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #475467;
+            background: #fff;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button.primary {
+            border-color: var(--blue);
+            color: #fff;
+            background: var(--blue);
+        }
+
+        .button.primary:hover {
+            background: #1946b8;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .content {
+            max-width: 1350px;
+            margin: 0 auto;
+            padding: 34px 36px 50px;
+        }
+
+        .eyebrow {
+            margin-bottom: 9px;
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .welcome h2 {
+            margin: 0 0 10px;
+            color: var(--navy);
+            font-size: 29px;
+            letter-spacing: -.8px;
+        }
+
+        .welcome p {
+            max-width: 680px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .status-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 21px;
+            margin: 27px 0;
+            border: 1px solid #abefc6;
+            border-radius: 12px;
+            background: #ecfdf3;
+        }
+
+        .status-icon {
+            flex: 0 0 42px;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            color: var(--green);
+            background: #d1fadf;
+            font-size: 20px;
+        }
+
+        .status-banner h3 {
+            margin: 2px 0 7px;
+            color: #05603a;
+            font-size: 14px;
+        }
+
+        .status-banner p {
+            margin: 0;
+            color: #067647;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .section-title {
+            margin: 34px 0 16px;
+            color: var(--navy);
+            font-size: 18px;
+            letter-spacing: -.3px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            min-width: 0;
+            padding: 23px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(16,43,92,.025);
+        }
+
+        .card-icon {
+            display: grid;
+            place-items: center;
+            width: 43px;
+            height: 43px;
+            margin-bottom: 18px;
+            border-radius: 11px;
+            color: var(--blue);
+            background: #edf3ff;
+            font-size: 20px;
+        }
+
+        .card h3 {
+            margin: 0 0 9px;
+            color: var(--navy);
+            font-size: 15px;
+        }
+
+        .card p {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .note-panel {
+            padding: 23px;
+            margin-top: 23px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .note-panel h3 {
+            margin: 0 0 10px;
+            color: var(--navy);
+            font-size: 15px;
+        }
+
+        .note-panel p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.9;
+        }
+
+        .footer {
+            padding: 22px 36px;
+            border-top: 1px solid var(--border);
+            color: #8995a9;
+            background: #fff;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid #91b4ff;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 850px) {
+            .sidebar {
+                position: static;
+                width: auto;
+                padding: 14px 18px;
+            }
+
+            .brand {
+                margin: 0 10px 14px;
+            }
+
+            .nav-label,
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .nav-link {
+                display: inline-flex;
+                min-height: 36px;
+                margin: 0 4px 0 0;
+                padding: 0 10px;
+                font-size: 11px;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding-right: 22px;
+                padding-left: 22px;
+            }
+
+            .content {
+                padding: 27px 22px 40px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .topbar {
+                align-items: flex-start;
+                padding: 15px;
+            }
+
+            .topbar h1 {
+                font-size: 18px;
+            }
+
+            .topbar-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .content {
+                padding: 24px 15px 35px;
+            }
+
+            .welcome h2 {
+                font-size: 24px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .status-banner,
+            .card,
+            .note-panel {
+                padding: 17px;
+            }
+
+            .footer {
+                padding: 19px 15px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <a class="brand" href="{{ url_for('home') }}">
+            <span class="brand-icon" aria-hidden="true">&#128274;</span>
+            <span>TrustVault</span>
+        </a>
+
+        <p class="nav-label">Administration</p>
+
+        <nav aria-label="Admin navigation">
+            <a class="nav-link active" href="{{ url_for('admin_page') }}">
+                <span class="nav-icon" aria-hidden="true">&#9881;</span>
+                Admin overview
+            </a>
+
+            <a class="nav-link" href="{{ url_for('dashboard') }}">
+                <span class="nav-icon" aria-hidden="true">&#9632;</span>
+                User dashboard
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="security-card">
+                <strong>&#128274; Protected area</strong>
+                <p>This page is restricted to authorized administrator accounts.</p>
+            </div>
+
+            <div class="account">
+                <strong>{{ current_user.name }}</strong>
+                <span>Administrator account</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <div>
+                <div class="breadcrumb">TrustVault / Administration</div>
+                <h1>Admin Panel</h1>
+            </div>
+
+            <div class="topbar-actions">
+                <a class="button" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+
+                <form class="logout-form" method="POST" action="{{ url_for('logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="button primary" type="submit">Log out &#8594;</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="content">
+            <section class="welcome">
+                <div class="eyebrow">Administration workspace</div>
+                <h2>Welcome, {{ current_user.name }}.</h2>
+                <p>
+                    Manage your TrustVault workspace and review the application's
+                    security and access-control capabilities.
+                </p>
+            </section>
+
+            <section class="status-banner" aria-label="Administrator verification">
+                <div class="status-icon" aria-hidden="true">&#10003;</div>
+                <div>
+                    <h3>Administrator access verified</h3>
+                    <p>
+                        Your administrator role has been verified by the application.
+                        Continue using the protected admin area responsibly.
+                    </p>
+                </div>
+            </section>
+
+            <h2 class="section-title">Administration overview</h2>
+
+            <section class="cards">
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">&#128274;</div>
+                    <h3>Access control</h3>
+                    <p>
+                        TrustVault restricts protected administrator functionality
+                        to users with the required role. Document access is
+                        separately controlled through permissions.
+                    </p>
+                    <a class="button" href="{{ url_for('dashboard') }}">
+                        Open dashboard
+                    </a>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">&#128196;</div>
+                    <h3>Document management</h3>
+                    <p>
+                        Return to the dashboard to manage your documents,
+                        upload files, review sharing permissions, and revoke access.
+                    </p>
+                    <a class="button" href="{{ url_for('dashboard') }}">
+                        Manage documents
+                    </a>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">&#128737;</div>
+                    <h3>Security controls</h3>
+                    <p>
+                        The application includes authenticated routes, CSRF-protected
+                        forms, role checks, and document permission enforcement.
+                    </p>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">&#128221;</div>
+                    <h3>Audit activity</h3>
+                    <p>
+                        The full audit activity view has not yet been implemented
+                        on this page. No audit statistics or events are displayed
+                        here until they are connected to real database records.
+                    </p>
+                </article>
+            </section>
+
+            <section class="note-panel">
+                <h3>Security reminder</h3>
+                <p>
+                    Administrator access does not replace document-level
+                    authorization checks. Continue verifying that users can only
+                    perform actions allowed by their role and document permissions.
+                    Test both successful operations and denied-access scenarios
+                    whenever security-related code changes.
+                </p>
+            </section>
+        </main>
+
+        <footer class="footer">
+            TrustVault · Secure document management and sharing
+        </footer>
+    </div>
 </body>
 </html>
+```
