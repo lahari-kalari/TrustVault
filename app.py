@@ -1,6 +1,7 @@
 import os
 import uuid
 import zipfile
+from datetime import datetime, time, timedelta, timezone
 from functools import wraps
 
 from flask import (
@@ -483,6 +484,38 @@ def logout():
 @login_required
 def dashboard():
     search_query = request.args.get("q", "").strip()
+    start_date = request.args.get("start_date", "").strip()
+    end_date = request.args.get("end_date", "").strip()
+    start_date_obj = None
+    end_date_obj = None
+
+    try:
+        if start_date:
+            start_date_obj = datetime.strptime(
+                start_date, "%Y-%m-%d"
+            ).date()
+
+        if end_date:
+            end_date_obj = datetime.strptime(
+                end_date, "%Y-%m-%d"
+            ).date()
+
+        if (
+            start_date_obj
+            and end_date_obj
+            and start_date_obj > end_date_obj
+        ):
+            raise ValueError(
+                "Start date cannot be after end date."
+            )
+
+    except ValueError:
+        flash(
+            "Please select valid dates. The start date "
+            "must not be after the end date.",
+            "error",
+        )
+        return redirect(url_for("dashboard"))
 
     # Documents owned by the logged-in user.
     owned_query = Document.query.filter_by(
@@ -505,6 +538,32 @@ def dashboard():
             User.is_active.is_(True),
         )
     )
+
+    if start_date_obj:
+        start_boundary = datetime.combine(
+            start_date_obj,
+            time.min,
+            tzinfo=timezone.utc,
+        )
+        owned_query = owned_query.filter(
+            Document.created_at >= start_boundary
+        )
+        shared_query = shared_query.filter(
+            Document.created_at >= start_boundary
+        )
+
+    if end_date_obj:
+        end_boundary = datetime.combine(
+            end_date_obj + timedelta(days=1),
+            time.min,
+            tzinfo=timezone.utc,
+        )
+        owned_query = owned_query.filter(
+            Document.created_at < end_boundary
+        )
+        shared_query = shared_query.filter(
+            Document.created_at < end_boundary
+        )
 
     if search_query:
         pattern = f"%{search_query}%"
@@ -549,6 +608,8 @@ def dashboard():
         documents=documents,
         shared_documents=shared_documents,
         search_query=search_query,
+        start_date=start_date,
+        end_date=end_date,
     )
 
 
@@ -559,7 +620,42 @@ def dashboard():
 @app.route("/admin")
 @roles_required("admin")
 def admin_page():
-    return render_template("admin.html")
+    users = User.query.order_by(
+        User.created_at.desc()
+    ).all()
+
+    recent_audit_logs = AuditLog.query.order_by(
+        AuditLog.created_at.desc()
+    ).limit(100).all()
+
+    user_count = User.query.count()
+
+    active_user_count = User.query.filter_by(
+        is_active=True
+    ).count()
+
+    owner_count = User.query.filter_by(
+        role="owner"
+    ).count()
+
+    viewer_count = User.query.filter_by(
+        role="viewer"
+    ).count()
+
+    admin_count = User.query.filter_by(
+        role="admin"
+    ).count()
+
+    return render_template(
+        "admin.html",
+        users=users,
+        recent_audit_logs=recent_audit_logs,
+        user_count=user_count,
+        active_user_count=active_user_count,
+        owner_count=owner_count,
+        viewer_count=viewer_count,
+        admin_count=admin_count,
+    )
 
 
 # ==================================================

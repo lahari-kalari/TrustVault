@@ -44,8 +44,17 @@ def client():
             role="viewer",
             is_active=True,
         )
+        admin = User(
+            name="Test Administrator",
+            email="admin@example.com",
+            password_hash=generate_password_hash(
+                "AdminTestPass123!"
+            ),
+            role="admin",
+            is_active=True,
+        )
 
-        db.session.add_all([owner, viewer])
+        db.session.add_all([owner, viewer, admin])
         db.session.commit()
 
         yield app.test_client()
@@ -837,3 +846,27 @@ def test_upload_rejects_file_over_size_limit(client):
         assert event is not None
         assert event.actor_id is not None
         assert "size limit" in event.details.lower()
+def test_admin_can_view_admin_dashboard(client):
+    login(
+        client,
+        "admin@example.com",
+        "AdminTestPass123!",
+    )
+
+    response = client.get("/admin")
+
+    assert response.status_code == 200
+
+    page = response.get_data(as_text=True)
+
+    assert "Admin Panel" in page
+    assert "Administration overview" in page
+    assert "User accounts" in page
+    assert "Recent audit activity" in page
+
+    # Verify that the statistics are rendered from database values.
+    assert "Total users" in page
+    assert "Document owners" in page
+    assert "Viewers" in page
+    assert "Administrators" in page
+

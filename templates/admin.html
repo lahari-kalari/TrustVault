@@ -1,4 +1,4 @@
-```html
+﻿
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +16,7 @@
             --border: #e3eaf4;
             --surface: #f6f8fc;
             --green: #067647;
+            --red: #b42318;
         }
 
         * {
@@ -44,6 +45,7 @@
             padding: 25px 17px;
             color: #dce7ff;
             background: var(--navy);
+            overflow-y: auto;
         }
 
         .brand {
@@ -205,6 +207,10 @@
             cursor: pointer;
         }
 
+        .button:hover {
+            background: #f6f8fc;
+        }
+
         .button.primary {
             border-color: var(--blue);
             color: #fff;
@@ -292,9 +298,16 @@
             letter-spacing: -.3px;
         }
 
+        .section-description {
+            margin: -7px 0 17px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
         .cards {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 18px;
         }
 
@@ -322,11 +335,19 @@
         .card h3 {
             margin: 0 0 9px;
             color: var(--navy);
-            font-size: 15px;
+            font-size: 13px;
+        }
+
+        .card .stat-number {
+            margin: 0 0 7px;
+            color: var(--navy);
+            font-size: 31px;
+            font-weight: 800;
+            line-height: 1.2;
         }
 
         .card p {
-            margin: 0 0 18px;
+            margin: 0;
             color: var(--muted);
             font-size: 12px;
             line-height: 1.8;
@@ -338,6 +359,10 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             background: #fff;
+        }
+
+        .note-panel h2.section-title {
+            margin-top: 0;
         }
 
         .note-panel h3 {
@@ -353,6 +378,105 @@
             line-height: 1.9;
         }
 
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 650px;
+            border-collapse: collapse;
+            background: #fff;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        th {
+            color: #475467;
+            background: #f8faff;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        td {
+            color: #344054;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #fafcff;
+        }
+
+        .role-badge,
+        .status-badge,
+        .outcome-badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .role-admin {
+            color: #3538cd;
+            background: #eef0ff;
+        }
+
+        .role-owner {
+            color: #175cd3;
+            background: #eff8ff;
+        }
+
+        .role-viewer {
+            color: #475467;
+            background: #f2f4f7;
+        }
+
+        .status-active,
+        .outcome-success {
+            color: #067647;
+            background: #ecfdf3;
+        }
+
+        .status-inactive,
+        .outcome-denied,
+        .outcome-failure {
+            color: var(--red);
+            background: #fef3f2;
+        }
+
+        .outcome-other {
+            color: #475467;
+            background: #f2f4f7;
+        }
+
+        .empty-state {
+            padding: 25px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .security-reminder {
+            border-left: 4px solid var(--blue);
+        }
+
         .footer {
             padding: 22px 36px;
             border-top: 1px solid var(--border);
@@ -366,6 +490,17 @@
         button:focus-visible {
             outline: 3px solid #91b4ff;
             outline-offset: 3px;
+        }
+
+        @media (max-width: 1100px) {
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .content {
+                padding-right: 25px;
+                padding-left: 25px;
+            }
         }
 
         @media (max-width: 850px) {
@@ -409,6 +544,7 @@
         @media (max-width: 560px) {
             .topbar {
                 align-items: flex-start;
+                flex-direction: column;
                 padding: 15px;
             }
 
@@ -417,8 +553,7 @@
             }
 
             .topbar-actions {
-                flex-direction: column;
-                align-items: stretch;
+                align-items: flex-start;
             }
 
             .content {
@@ -497,11 +632,17 @@
             </div>
 
             <div class="topbar-actions">
-                <a class="button" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+                <a class="button" href="{{ url_for('dashboard') }}">
+                    Back to dashboard
+                </a>
 
-                <form class="logout-form" method="POST" action="{{ url_for('logout') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button class="button primary" type="submit">Log out &#8594;</button>
+                <form class="logout-form" method="POST"
+                      action="{{ url_for('logout') }}">
+                    <input type="hidden" name="csrf_token"
+                           value="{{ csrf_token() }}">
+                    <button class="button primary" type="submit">
+                        Log out &#8594;
+                    </button>
                 </form>
             </div>
         </header>
@@ -511,86 +652,212 @@
                 <div class="eyebrow">Administration workspace</div>
                 <h2>Welcome, {{ current_user.name }}.</h2>
                 <p>
-                    Manage your TrustVault workspace and review the application's
-                    security and access-control capabilities.
+                    Monitor user accounts, review recorded security events,
+                    and oversee the TrustVault workspace.
                 </p>
             </section>
 
-            <section class="status-banner" aria-label="Administrator verification">
+            <section class="status-banner"
+                     aria-label="Administrator verification">
                 <div class="status-icon" aria-hidden="true">&#10003;</div>
                 <div>
                     <h3>Administrator access verified</h3>
                     <p>
-                        Your administrator role has been verified by the application.
-                        Continue using the protected admin area responsibly.
+                        Your administrator role has been verified by the
+                        application. User and audit information below is
+                        retrieved from the database.
                     </p>
                 </div>
             </section>
 
             <h2 class="section-title">Administration overview</h2>
+            <p class="section-description">
+                Current account counts based on TrustVault database records.
+            </p>
 
-            <section class="cards">
+            <section class="cards" aria-label="User statistics">
                 <article class="card">
-                    <div class="card-icon" aria-hidden="true">&#128274;</div>
-                    <h3>Access control</h3>
-                    <p>
-                        TrustVault restricts protected administrator functionality
-                        to users with the required role. Document access is
-                        separately controlled through permissions.
-                    </p>
-                    <a class="button" href="{{ url_for('dashboard') }}">
-                        Open dashboard
-                    </a>
+                    <div class="card-icon" aria-hidden="true">&#128101;</div>
+                    <h3>Total users</h3>
+                    <p class="stat-number">{{ user_count }}</p>
+                    <p>All registered accounts.</p>
                 </article>
 
                 <article class="card">
-                    <div class="card-icon" aria-hidden="true">&#128196;</div>
-                    <h3>Document management</h3>
-                    <p>
-                        Return to the dashboard to manage your documents,
-                        upload files, review sharing permissions, and revoke access.
-                    </p>
-                    <a class="button" href="{{ url_for('dashboard') }}">
-                        Manage documents
-                    </a>
+                    <div class="card-icon" aria-hidden="true">&#9989;</div>
+                    <h3>Active users</h3>
+                    <p class="stat-number">{{ active_user_count }}</p>
+                    <p>Accounts currently marked active.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">&#128273;</div>
+                    <h3>Document owners</h3>
+                    <p class="stat-number">{{ owner_count }}</p>
+                    <p>Accounts assigned the owner role.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">&#128100;</div>
+                    <h3>Viewers</h3>
+                    <p class="stat-number">{{ viewer_count }}</p>
+                    <p>Accounts assigned the viewer role.</p>
                 </article>
 
                 <article class="card">
                     <div class="card-icon" aria-hidden="true">&#128737;</div>
-                    <h3>Security controls</h3>
-                    <p>
-                        The application includes authenticated routes, CSRF-protected
-                        forms, role checks, and document permission enforcement.
-                    </p>
-                </article>
-
-                <article class="card">
-                    <div class="card-icon" aria-hidden="true">&#128221;</div>
-                    <h3>Audit activity</h3>
-                    <p>
-                        The full audit activity view has not yet been implemented
-                        on this page. No audit statistics or events are displayed
-                        here until they are connected to real database records.
-                    </p>
+                    <h3>Administrators</h3>
+                    <p class="stat-number">{{ admin_count }}</p>
+                    <p>Accounts assigned administrator access.</p>
                 </article>
             </section>
 
             <section class="note-panel">
+                <h2 class="section-title">User accounts</h2>
+                <p class="section-description">
+                    Registered users and their current account status.
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="role-badge role-{{ user.role }}">
+                                        {{ user.role|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="status-badge status-active">
+                                        Active
+                                    </span>
+                                    {% else %}
+                                    <span class="status-badge status-inactive">
+                                        Inactive
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.created_at %}
+                                        {{ user.created_at.strftime("%Y-%m-%d") }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    No user accounts found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="note-panel">
+                <h2 class="section-title">Recent audit activity</h2>
+                <p class="section-description">
+                    The latest 100 recorded events, with the newest entries first.
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time (UTC)</th>
+                                <th>Actor</th>
+                                <th>Action</th>
+                                <th>Document ID</th>
+                                <th>Outcome</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for log in recent_audit_logs %}
+                            <tr>
+                                <td>
+                                    {% if log.created_at %}
+                                        {{ log.created_at.strftime("%Y-%m-%d %H:%M:%S") }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.actor %}
+                                        {{ log.actor.name }}
+                                    {% else %}
+                                        Deleted or unknown user
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.action }}</td>
+                                <td>
+                                    {{ log.document_id if log.document_id else "—" }}
+                                </td>
+                                <td>
+                                    {% if log.outcome == "success" %}
+                                    <span class="outcome-badge outcome-success">
+                                        Success
+                                    </span>
+                                    {% elif log.outcome == "denied" %}
+                                    <span class="outcome-badge outcome-denied">
+                                        Denied
+                                    </span>
+                                    {% elif log.outcome == "failure" %}
+                                    <span class="outcome-badge outcome-failure">
+                                        Failure
+                                    </span>
+                                    {% else %}
+                                    <span class="outcome-badge outcome-other">
+                                        {{ log.outcome|title }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.details or "—" }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    No audit events have been recorded yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="note-panel security-reminder">
                 <h3>Security reminder</h3>
                 <p>
-                    Administrator access does not replace document-level
-                    authorization checks. Continue verifying that users can only
-                    perform actions allowed by their role and document permissions.
-                    Test both successful operations and denied-access scenarios
-                    whenever security-related code changes.
+                    The admin dashboard displays account and audit information;
+                    it does not replace server-side authorization. Continue to
+                    verify role restrictions, document permissions, sharing,
+                    revocation, and audit logging with automated tests.
                 </p>
             </section>
         </main>
 
         <footer class="footer">
-            TrustVault · Secure document management and sharing
+            TrustVault &middot; Secure document management and sharing
         </footer>
     </div>
 </body>
 </html>
-```
