@@ -42,11 +42,16 @@ from models import db, User, Document, Permission, AuditLog
 # ==================================================
 
 app = Flask(__name__, instance_relative_config=True)
+rate_limit_storage = os.environ.get(
+    "REDIS_URL",
+    "memory://",
+)
+
 limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=[],
-    storage_uri="memory://",
+    storage_uri=rate_limit_storage,
     enabled=not app.config.get("TESTING", False),
 )
 
