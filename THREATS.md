@@ -27,7 +27,7 @@ Can access the home page, health endpoint, registration page, and login page. Mu
 
 ### Viewer
 
-Newly registered accounts receive the `viewer` role. A viewer should only access documents they own or documents explicitly shared with them.
+During registration, users can choose either the `viewer` role or the document-owner role. Administrator access is not offered as a public registration choice. A viewer should only access documents they own or documents explicitly shared with them.
 
 ### Document owner
 
@@ -213,7 +213,7 @@ The failure test simulates a commit exception and verifies that the helper attem
 
 - The admin route uses the role-protection decorator.
 - The decorator checks the current user's role and returns HTTP 403 on denial.
-- The decorator attempts to record a `role_access_denied` event.
+- The decorator attempts to record a `role_access_denied` event. The passing access-denial test verifies the denial behavior; it does not independently establish that this specific audit event was persisted.
 
 **Residual risk:** The admin page's underlying functionality and data exposure should be tested independently as it grows.
 
@@ -238,7 +238,7 @@ The failure test simulates a commit exception and verifies that the helper attem
 
 ## 5. Security Tests and Evidence
 
-The current automated test suite has most recently passed with **20 tests passing**. This is the latest recorded full-suite result; rerun the suite before submission to confirm the current state.
+The latest verified full-suite run passed **21 tests** using `python -m pytest .\test_app.py -v` on 2026-10-24. Rerun the suite after subsequent changes.
 
 The automated tests cover:
 

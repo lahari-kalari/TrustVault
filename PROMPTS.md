@@ -1,4 +1,4 @@
-﻿\# TrustVault â€” AI Prompt and Verification Log
+# TrustVault - AI Prompt and Verification Log
 
 
 
@@ -162,4 +162,11 @@ Add an entry after each significant AI-assisted development or security-testing 
 - **Verification:** `git diff --check` passed, and the full test suite passed with 20 tests.
 - **Commit:** https://github.com/lahari-kalari/TrustVault/commit/e853967
 
+## Entry 11 - 2026-10-24: Registration roles, interface styling, and documentation accuracy
 
+- **What was requested:** Add account-role selection to registration, improve the interface styling, and review project documentation for consistency with the current implementation.
+- **What the tool produced:** Registration role choices for Viewer and Document Owner, interface styling in `static/style.css`, and documentation updates reflecting role selection, the current test count, and deployment limitations.
+- **What needed checking:** Documentation still described all new accounts as viewers and recorded an outdated test count. The README also contained a malformed `API.md` bullet. Passing the admin-access test did not independently prove that the corresponding denied audit event was persisted.
+- **What was done instead:** Preserve the earlier prompt history, update the current role and test descriptions, repair the malformed README bullet, and retain cautious wording for audit behavior that has not been independently verified.
+- **Verification:** The full test suite passed with 21 tests on 2026-10-24. Documentation changes must also pass `git diff --check` before committing.
+- **Related implementation commit:** https://github.com/lahari-kalari/TrustVault/commit/91cee0e

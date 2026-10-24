@@ -5,7 +5,7 @@ TrustVault is a Flask-based document management application that provides authen
 ## Features
 
 - **Authentication:** User registration, login, logout, and password hashing.
-- **Role-based access control:** Admin, owner, and viewer roles.
+- **Role-based access control:** Registration allows Viewer or Document Owner; administrator access is restricted.
 - **Private document storage:** Supported file uploads with a 10 MB size limit and file validation.
 - **Document management:** Search, download, edit, and delete operations subject to authorization checks.
 - **Document sharing:** Grant and revoke document permissions.
@@ -80,7 +80,7 @@ From the project directory, run:
 python -m pytest .\test_app.py -v
 ```
 
-The latest recorded run passed all 20 tests. Run the suite again after making changes to verify the current result.
+The latest verified run passed all 21 tests using `python -m pytest .\test_app.py -v`. Rerun the suite after making changes.
 
 ## Production Deployment Notes
 
@@ -99,7 +99,7 @@ TrustVault requires additional configuration before it is ready for a public pro
 
 ## Security Documentation
 
-- `API.md` â€” API and access-control documentation.
+- `API.md` documents API endpoints and their access requirements.
 - `THREATS.md` â€” Threat model, mitigations, and residual risks.
 - `PROMPTS.md` â€” AI-assisted development and verification log.
 
