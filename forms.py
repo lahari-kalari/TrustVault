@@ -1,6 +1,11 @@
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import (
+    StringField,
+    PasswordField,
+    SelectField,
+    SubmitField,
+)
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -25,6 +30,15 @@ class RegistrationForm(FlaskForm):
             Email(),
             Length(max=255),
         ],
+    )
+
+    role = SelectField(
+        "Choose account role",
+        choices=[
+            ("viewer", "Viewer"),
+            ("owner", "Document Owner"),
+        ],
+        validators=[DataRequired()],
     )
 
     password = PasswordField(

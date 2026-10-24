@@ -1,21 +1,25 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#102b5c">
+    <meta name="theme-color" content="#172554">
 
     <title>Sign In | TrustVault</title>
 
     <style>
         :root {
-            --navy: #102b5c;
-            --blue: #2457d6;
-            --blue-dark: #1946b8;
-            --text: #172b4d;
+            --navy: #172554;
+            --navy-deep: #111b3c;
+            --blue: #4f46e5;
+            --blue-dark: #4338ca;
+            --text: #172033;
             --muted: #667085;
-            --border: #dce4f0;
-            --surface: #f4f7fc;
+            --border: #e2e8f0;
+            --surface: #f5f3ff;
+            --white: #ffffff;
+            --focus: rgba(79, 70, 229, 0.18);
         }
 
         * {
@@ -27,9 +31,9 @@
         body {
             min-height: 100vh;
             font-family: Inter, -apple-system, BlinkMacSystemFont,
-                         "Segoe UI", Arial, sans-serif;
+                "Segoe UI", Arial, sans-serif;
             color: var(--text);
-            background: #fff;
+            background: #f8f9ff;
         }
 
         a {
@@ -37,13 +41,14 @@
         }
 
         .navbar {
-            height: 76px;
+            min-height: 76px;
             padding: 0 7%;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #edf0f6;
-            background: #fff;
+            gap: 20px;
+            border-bottom: 1px solid #e9eaf5;
+            background: rgba(255, 255, 255, 0.96);
         }
 
         .brand {
@@ -58,13 +63,14 @@
         }
 
         .brand-icon {
-            width: 39px;
-            height: 39px;
+            width: 40px;
+            height: 40px;
             display: grid;
             place-items: center;
             color: #fff;
-            background: var(--blue);
-            border-radius: 11px;
+            background: linear-gradient(145deg, #6366f1, #4338ca);
+            border-radius: 13px;
+            box-shadow: 0 7px 16px rgba(79, 70, 229, 0.23);
             font-size: 21px;
         }
 
@@ -76,15 +82,21 @@
         .nav-right a {
             margin-left: 8px;
             color: var(--blue);
-            font-weight: 700;
+            font-weight: 750;
             text-decoration: none;
         }
 
+        .nav-right a:hover {
+            text-decoration: underline;
+        }
+
         .page {
-            min-height: calc(100vh - 76px);
+            min-height: calc(100vh - 126px);
             display: grid;
             grid-template-columns: 1fr 1fr;
         }
+
+        /* Left introduction panel */
 
         .intro-panel {
             position: relative;
@@ -95,16 +107,29 @@
             padding: 70px 11%;
             color: #fff;
             background:
-                radial-gradient(circle at 90% 10%,
-                    rgba(96, 165, 250, .27), transparent 32%),
-                linear-gradient(145deg, #102b5c, #1748a0 68%, #2864d9);
+                radial-gradient(
+                    circle at 84% 16%,
+                    rgba(167, 139, 250, 0.30),
+                    transparent 29%
+                ),
+                radial-gradient(
+                    circle at 6% 92%,
+                    rgba(56, 189, 248, 0.16),
+                    transparent 32%
+                ),
+                linear-gradient(
+                    145deg,
+                    #111b3c,
+                    #202d68 55%,
+                    #4338ca
+                );
         }
 
         .intro-panel::before,
         .intro-panel::after {
             content: "";
             position: absolute;
-            border: 1px solid rgba(255,255,255,.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 50%;
             pointer-events: none;
         }
@@ -135,12 +160,12 @@
             gap: 8px;
             margin-bottom: 25px;
             padding: 9px 13px;
-            border: 1px solid rgba(255,255,255,.24);
+            border: 1px solid rgba(255, 255, 255, 0.24);
             border-radius: 30px;
-            color: #e0ebff;
-            background: rgba(255,255,255,.08);
+            color: #e9e7ff;
+            background: rgba(255, 255, 255, 0.08);
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 750;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -153,12 +178,12 @@
         }
 
         .intro-panel h1 span {
-            color: #9fc5ff;
+            color: #c4b5fd;
         }
 
         .intro-panel .description {
             max-width: 420px;
-            color: #d8e5ff;
+            color: #e0e7ff;
             font-size: 16px;
             line-height: 1.9;
         }
@@ -173,19 +198,19 @@
             display: flex;
             align-items: flex-start;
             gap: 13px;
-            color: #edf4ff;
+            color: #eef2ff;
             font-size: 14px;
             line-height: 1.6;
         }
 
         .benefit-icon {
-            flex: 0 0 34px;
-            width: 34px;
-            height: 34px;
+            flex: 0 0 35px;
+            width: 35px;
+            height: 35px;
             display: grid;
             place-items: center;
-            border-radius: 10px;
-            background: rgba(255,255,255,.13);
+            border-radius: 11px;
+            background: rgba(255, 255, 255, 0.13);
             font-size: 16px;
         }
 
@@ -195,17 +220,30 @@
             color: #fff;
         }
 
+        /* Right login panel */
+
         .form-panel {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 55px 8%;
-            background: #fff;
+            padding: 45px 7%;
+            background:
+                radial-gradient(
+                    circle at 90% 4%,
+                    rgba(221, 214, 254, 0.42),
+                    transparent 28%
+                ),
+                linear-gradient(180deg, #fbfaff, #fff 65%);
         }
 
         .login-card {
             width: 100%;
-            max-width: 430px;
+            max-width: 440px;
+            padding: 30px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.97);
+            box-shadow: 0 22px 60px rgba(31, 41, 85, 0.09);
         }
 
         .mobile-brand {
@@ -213,14 +251,14 @@
         }
 
         .form-heading {
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .form-heading .small-label {
             margin-bottom: 12px;
             color: var(--blue);
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 850;
             letter-spacing: 1.5px;
             text-transform: uppercase;
         }
@@ -228,25 +266,99 @@
         .form-heading h2 {
             margin-bottom: 11px;
             color: var(--navy);
-            font-size: 34px;
+            font-size: 32px;
             letter-spacing: -1px;
         }
 
         .form-heading p {
             color: var(--muted);
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.7;
         }
 
+        /* Demo role buttons */
+
+        .demo-login-options {
+            margin-bottom: 24px;
+            padding: 17px;
+            border: 1px solid #e7e5ff;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #f7f6ff, #fafaff);
+        }
+
+        .demo-login-options h3 {
+            margin-bottom: 6px;
+            color: var(--navy);
+            font-size: 15px;
+        }
+
+        .demo-login-options > p {
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .demo-login-btn {
+            width: 100%;
+            min-height: 43px;
+            margin-top: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e0e2f4;
+            border-radius: 10px;
+            color: #30365d;
+            background: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 750;
+            text-align: left;
+            transition:
+                border-color 0.2s,
+                background 0.2s,
+                transform 0.2s;
+        }
+
+        .demo-login-btn::before {
+            content: "•";
+            width: 25px;
+            height: 25px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            color: var(--blue);
+            background: #eeecff;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .demo-login-btn:hover {
+            border-color: #a5a0ff;
+            background: #f5f3ff;
+            transform: translateY(-1px);
+        }
+
+        .demo-login-btn:focus-visible,
+        .login-btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid #a5b4fc;
+            outline-offset: 3px;
+        }
+
+        /* Flash messages */
+
         .messages {
-            margin-bottom: 22px;
+            margin-bottom: 20px;
         }
 
         .message,
         .success-message {
             margin-bottom: 9px;
             padding: 13px 15px;
-            border-radius: 9px;
+            border-radius: 10px;
             font-size: 14px;
             line-height: 1.5;
         }
@@ -263,30 +375,32 @@
             background: #ecfdf3;
         }
 
+        /* Form fields */
+
         .form-group {
-            margin-bottom: 22px;
+            margin-bottom: 19px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 9px;
+            margin-bottom: 8px;
             color: #344054;
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 750;
         }
 
         .form-group input {
             width: 100%;
-            min-height: 51px;
-            padding: 13px 15px;
+            min-height: 49px;
+            padding: 13px 14px;
             border: 1px solid var(--border);
-            border-radius: 9px;
+            border-radius: 10px;
             outline: none;
             color: var(--text);
             background: #fff;
             font: inherit;
             font-size: 14px;
-            transition: border-color .2s, box-shadow .2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .form-group input::placeholder {
@@ -295,7 +409,7 @@
 
         .form-group input:focus {
             border-color: var(--blue);
-            box-shadow: 0 0 0 4px rgba(36,87,214,.11);
+            box-shadow: 0 0 0 4px var(--focus);
         }
 
         .field-error {
@@ -305,52 +419,48 @@
             line-height: 1.5;
         }
 
+        /* Sign-in button */
+
         .login-btn {
             width: 100%;
-            min-height: 52px;
+            min-height: 51px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 7px;
+            margin-top: 6px;
             border: none;
-            border-radius: 9px;
+            border-radius: 11px;
             color: #fff;
-            background: var(--blue);
-            box-shadow: 0 5px 12px rgba(36,87,214,.17);
+            background: linear-gradient(110deg, #4f46e5, #6366f1);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.22);
             cursor: pointer;
             font: inherit;
             font-size: 15px;
-            font-weight: 750;
-            transition: background .2s, transform .2s;
+            font-weight: 800;
+            transition: filter 0.2s, transform 0.2s;
         }
 
         .login-btn:hover {
-            background: var(--blue-dark);
+            filter: brightness(0.96);
             transform: translateY(-1px);
         }
 
-        .login-btn:focus-visible,
-        a:focus-visible {
-            outline: 3px solid #91b4ff;
-            outline-offset: 3px;
-        }
-
         .register-box {
-            margin-top: 28px;
-            padding: 18px;
-            border: 1px solid #e4eaf4;
-            border-radius: 10px;
+            margin-top: 22px;
+            padding: 15px;
+            border: 1px solid #e8e8f5;
+            border-radius: 11px;
             color: var(--muted);
-            background: var(--surface);
+            background: #fafaff;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.8;
         }
 
         .register-box a {
             color: var(--blue);
-            font-weight: 750;
+            font-weight: 800;
             text-decoration: none;
         }
 
@@ -363,28 +473,30 @@
             align-items: center;
             justify-content: center;
             gap: 7px;
-            margin-top: 25px;
+            margin-top: 21px;
             color: #7b879b;
             font-size: 12px;
         }
 
         .footer {
             padding: 20px 7%;
-            border-top: 1px solid #edf0f6;
+            border-top: 1px solid #e9eaf5;
             color: #8490a4;
             background: #fff;
             text-align: center;
             font-size: 12px;
         }
 
+        /* Responsive layout */
+
         @media (max-width: 850px) {
             .navbar {
-                height: 68px;
+                min-height: 68px;
                 padding: 0 5%;
             }
 
             .page {
-                min-height: calc(100vh - 68px);
+                min-height: calc(100vh - 118px);
                 grid-template-columns: 1fr;
             }
 
@@ -393,15 +505,14 @@
             }
 
             .form-panel {
-                padding: 48px 24px 55px;
-                background: linear-gradient(180deg, #f5f8ff, #fff 240px);
+                padding: 40px 24px 50px;
             }
 
             .mobile-brand {
                 display: flex;
                 align-items: center;
                 gap: 10px;
-                margin-bottom: 38px;
+                margin-bottom: 25px;
                 color: var(--navy);
                 font-size: 21px;
                 font-weight: 800;
@@ -414,7 +525,7 @@
             }
 
             .login-card {
-                max-width: 460px;
+                max-width: 470px;
             }
         }
 
@@ -432,15 +543,20 @@
             }
 
             .form-panel {
-                padding: 34px 21px 42px;
+                padding: 28px 15px 35px;
+            }
+
+            .login-card {
+                padding: 22px 18px;
+                border-radius: 18px;
             }
 
             .form-heading h2 {
-                font-size: 30px;
+                font-size: 28px;
             }
 
-            .mobile-brand {
-                margin-bottom: 30px;
+            .demo-login-options {
+                padding: 14px;
             }
         }
 
@@ -454,10 +570,13 @@
         }
     </style>
 </head>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 <body>
     <header class="navbar">
-        <a class="brand" href="{{ url_for('home') }}" aria-label="TrustVault home">
+        <a class="brand"
+           href="{{ url_for('home') }}"
+           aria-label="TrustVault home">
             <span class="brand-icon" aria-hidden="true">&#128274;</span>
             <span>TrustVault</span>
         </a>
@@ -522,7 +641,27 @@
                 <div class="form-heading">
                     <p class="small-label">Welcome back</p>
                     <h2 id="login-heading">Sign in to your account</h2>
-                    <p>Enter your details below to continue to your workspace.</p>
+                    <p>Enter your account details below to continue securely.</p>
+                </div>
+
+                <div class="demo-login-options">
+                    <h3>Demo accounts</h3>
+                    <p>
+                        Choose a role to identify the demo account type.
+                        Enter the account email and password to sign in.
+                    </p>
+
+                    <button type="button" class="demo-login-btn">
+                        Administrator Login
+                    </button>
+
+                    <button type="button" class="demo-login-btn">
+                        Document Owner Login
+                    </button>
+
+                    <button type="button" class="demo-login-btn">
+                        Viewer Login
+                    </button>
                 </div>
 
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -542,6 +681,7 @@
 
                     <div class="form-group">
                         <label for="email">Email address</label>
+
                         {{ form.email(
                             id="email",
                             placeholder="you@example.com",
@@ -556,6 +696,7 @@
 
                     <div class="form-group">
                         <label for="password">Password</label>
+
                         {{ form.password(
                             id="password",
                             placeholder="Enter your password",

@@ -468,6 +468,7 @@
         }
     </style>
 </head>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 <body>
     <header class="navbar">
@@ -581,6 +582,19 @@
                             <span class="field-error">{{ error }}</span>
                         {% endfor %}
                     </div>
+                    <div class="form-group">
+    {{ form.role.label }}
+
+    {{ form.role(
+        id="role",
+        class="form-control",
+        required=true
+    ) }}
+
+    {% for error in form.role.errors %}
+        <span class="field-error">{{ error }}</span>
+    {% endfor %}
+</div>
 
                     <div class="form-group">
                         {{ form.password.label }}

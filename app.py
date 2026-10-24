@@ -1,4 +1,4 @@
-import os
+﻿import os
 import uuid
 import zipfile
 from datetime import datetime, time, timedelta, timezone
@@ -385,7 +385,7 @@ def register():
             password_hash=generate_password_hash(
                 form.password.data
             ),
-            role="viewer",
+            role=form.role.data,
         )
 
         db.session.add(user)
@@ -1103,14 +1103,14 @@ def edit_document(document_id):
 
     if not title or len(title) > 200:
         flash(
-            "Title must contain 1–200 characters.",
+            "Title must contain 1â€“200 characters.",
             "error",
         )
         return redirect(url_for("dashboard"))
 
     if not category or len(category) > 100:
         flash(
-            "Category must contain 1–100 characters.",
+            "Category must contain 1â€“100 characters.",
             "error",
         )
         return redirect(url_for("dashboard"))

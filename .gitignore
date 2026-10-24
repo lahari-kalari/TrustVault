@@ -9,3 +9,10 @@ instance/
 *.sqlite3
 .pytest_cache/
 test_private_uploads/
+# Local backups and temporary scripts
+app_before_role_selection.py
+test_app_backup.py
+templates_backup_before_theme/
+templates/login_before_demo_options.html
+connect_render.py
+setup_demo_accounts.py

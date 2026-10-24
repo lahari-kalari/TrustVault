@@ -1,0 +1,166 @@
+﻿/* TrustVault — unified navy-blue theme */
+
+:root {
+    --navy: #102b5c;
+    --navy-dark: #0b1f45;
+    --navy-light: #23427d;
+    --blue: #2457d6;
+    --blue-dark: #1946b8;
+    --text: #172b4d;
+    --muted: #667085;
+    --border: #e3eaf4;
+    --surface: #f6f8fc;
+    --white: #ffffff;
+    --green: #067647;
+    --red: #b42318;
+    --page-padding: clamp(16px, 2vw, 32px);
+    --radius: 12px;
+    --shadow: 0 4px 18px rgba(16, 43, 92, 0.08);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    color: var(--text);
+    background: var(--surface);
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+    max-width: 100%;
+    font: inherit;
+}
+
+button,
+[type="button"],
+[type="submit"] {
+    cursor: pointer;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
+}
+
+a {
+    color: var(--blue);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--navy);
+    line-height: 1.25;
+}
+
+input,
+select,
+textarea {
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid rgba(36, 87, 214, 0.28);
+    outline-offset: 2px;
+}
+
+button,
+.primary-btn,
+.search-btn,
+.button-primary {
+    border-color: var(--blue);
+    border-radius: 8px;
+}
+
+.primary-btn,
+.search-btn,
+.button-primary {
+    color: var(--white);
+    background: var(--blue);
+}
+
+.primary-btn:hover,
+.search-btn:hover,
+.button-primary:hover {
+    background: var(--blue-dark);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    color: var(--navy);
+    text-align: left;
+}
+
+td,
+th {
+    overflow-wrap: anywhere;
+}
+
+.card,
+.panel,
+.stat-card,
+.content-card {
+    border-color: var(--border);
+    border-radius: var(--radius);
+}
+
+@media (min-width: 1200px) {
+    body {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 220px;
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        font-size: 13px;
+    }
+
+    .sidebar {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        max-height: none;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}
